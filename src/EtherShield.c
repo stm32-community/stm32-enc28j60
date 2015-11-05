@@ -60,13 +60,13 @@ The file should be extracted to the sketchbook/libraries/ folder so that there i
 
 #include "EtherShield.h"
 
-
 /**
  * Initialise SPI, separate from main initialisation so that
  * multiple SPI devices can be used together
  */
-void ES_enc28j60SpiInit(){
-  ENC28J60_SPI1_Configuration();
+void ES_enc28j60SpiInit(SPI_HandleTypeDef *hspi){
+//  ENC28J60_SPI1_Configuration();
+	enc28j60_set_spi(hspi);
 }
 
 

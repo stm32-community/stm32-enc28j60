@@ -2,9 +2,10 @@
 #define __ENC28J60_H
 
 #include "stm32includes.h"
+#include "../libraries/stm32fxxx_hal_libraries/00-STM32_LIBRARIES/tm_stm32_delay.h"
 
-#define disableChip  GPIO_SetBits(GPIOA,GPIO_PIN_4); delay_us(2);
-#define enableChip   GPIO_ResetBits(GPIOA,GPIO_PIN_4); delay_us(2);
+#define disableChip  GPIOA->BSRR = GPIO_PIN_4; Delay(2);
+#define enableChip   GPIOA->BSRR = GPIO_PIN_4<<16; Delay(2);
 
 
 // ENC28J60 Control Registers
@@ -244,8 +245,9 @@
 #define        MAX_FRAMELEN        1500        // (note: maximum ethernet frame length would be 1518)
 //#define MAX_FRAMELEN     600
 
-void ENC28J60_SPI1_Configuration(void);
-void ENC28J60_GPIO_Configuration(void);
+//void ENC28J60_SPI1_Configuration(void);
+//void ENC28J60_GPIO_Configuration(void);
+void enc28j60_set_spi(SPI_HandleTypeDef *hspi_new);
 unsigned char ENC28J60_SendByte(unsigned char dt);
 uint8_t enc28j60ReadOp(uint8_t op, uint8_t address);
 

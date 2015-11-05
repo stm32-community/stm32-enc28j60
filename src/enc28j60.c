@@ -3,18 +3,18 @@
 static uint8_t Enc28j60Bank;
 static uint16_t gNextPacketPtr;
 static uint8_t erxfcon;
-
+SPI_HandleTypeDef *hspi = NULL;
 
 #if 0
-void ENC28J60_SPI1_Configuration(void)
+void ENC28J60_hspi->Instance_Configuration(void)
 {
 	SPI_InitTypeDef   SPI_InitStructure;
 
     /* Enable the SPI periph */
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_hspi->Instance, ENABLE);
 
     /* SPI configuration -------------------------------------------------------*/
-    SPI_I2S_DeInit(SPI1);
+    SPI_I2S_DeInit(hspi->Instance);
     SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
     SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
     SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
@@ -24,10 +24,10 @@ void ENC28J60_SPI1_Configuration(void)
     SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
     SPI_InitStructure.SPI_CRCPolynomial = 7;
     SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
-    SPI_Init(SPI1, &SPI_InitStructure);
+    SPI_Init(hspi->Instance, &SPI_InitStructure);
 
-    /* Enable SPI1  */
-    SPI_Cmd(SPI1, ENABLE);
+    /* Enable hspi->Instance  */
+    SPI_Cmd(hspi->Instance, ENABLE);
 }
 
 #endif
@@ -50,9 +50,9 @@ void ENC28J60_GPIO_Configuration(void)
   /* Enable CS  GPIO clock */
   RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
 
-  GPIO_PinAFConfig(GPIOA, GPIO_PinSource5, GPIO_AF_SPI1);
-  GPIO_PinAFConfig(GPIOA, GPIO_PinSource6, GPIO_AF_SPI1);
-  GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_SPI1);
+  GPIO_PinAFConfig(GPIOA, GPIO_PinSource5, GPIO_AF_hspi->Instance);
+  GPIO_PinAFConfig(GPIOA, GPIO_PinSource6, GPIO_AF_hspi->Instance);
+  GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_hspi->Instance);
 
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
@@ -83,16 +83,23 @@ void ENC28J60_GPIO_Configuration(void)
 }
 #endif
 
+void enc28j60_set_spi(SPI_HandleTypeDef *hspi_new)
+{
+	hspi = hspi_new;
+}
+
 unsigned char ENC28J60_SendByte(unsigned char dt)
 {
+	if (hspi == NULL)
+		return 0;
 #if 0
-	while(SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);
+	while(SPI_I2S_GetFlagStatus(hspi->Instance, SPI_I2S_FLAG_TXE) == RESET);
 
-	SPI_I2S_SendData(SPI1, dt);
+	SPI_I2S_SendData(hspi->Instance, dt);
 
-	while(SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE) == RESET);
+	while(SPI_I2S_GetFlagStatus(hspi->Instance, SPI_I2S_FLAG_RXNE) == RESET);
     
-	return SPI_I2S_ReceiveData(SPI1);
+	return SPI_I2S_ReceiveData(hspi->Instance);
 #endif
 #warning ENC28J60_SendByte is not implemented
 }
@@ -190,7 +197,7 @@ uint16_t enc28j60PhyReadH(uint8_t address)
 	// Set the right address and start the register read operation
 	enc28j60Write(MIREGADR, address);
 	enc28j60Write(MICMD, MICMD_MIIRD);
-        delay_us(15);
+	Delay(15);
 
 	// wait until the PHY read completes
 	while(enc28j60Read(MISTAT) & MISTAT_BUSY);
@@ -220,7 +227,7 @@ void enc28j60PhyWrite(uint8_t address, uint16_t data)
         enc28j60Write(MIWRH, data>>8);
         // wait until the PHY write completes
         while(enc28j60Read(MISTAT) & MISTAT_BUSY){
-                delay_us(15);
+                Delay(15);
         }
 }
 /*
