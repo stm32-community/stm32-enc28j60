@@ -152,7 +152,7 @@ uint8_t ES_eth_type_is_arp_and_my_ip(uint8_t *buf,uint16_t len) {
 }
 
 uint8_t ES_eth_type_is_ip_and_my_ip(uint8_t *buf,uint16_t len) {
-	eth_type_is_ip_and_my_ip(buf, len);
+	return eth_type_is_ip_and_my_ip(buf, len);
 }
 
 void ES_make_echo_reply_from_request(uint8_t *buf,uint16_t len) {
@@ -385,7 +385,7 @@ uint8_t ES_udp_client_check_for_dns_answer(uint8_t *buf,uint16_t plen){
 uint8_t resolveHostname(uint8_t *buf, uint16_t buffer_size, uint8_t *hostname ) {
   uint16_t dat_p;
   int plen = 0;
-  long lastDnsRequest = Millis();
+  long lastDnsRequest = HAL_GetTick();
   uint8_t dns_state = DNS_STATE_INIT;
   bool gotAddress = FALSE;
   uint8_t dnsTries = 3;	// After 10 attempts fail gracefully so other action can be carried out
@@ -405,18 +405,18 @@ uint8_t resolveHostname(uint8_t *buf, uint16_t buffer_size, uint8_t *hostname ) 
       // It has IP data
       if (dns_state==DNS_STATE_INIT) {
         dns_state=DNS_STATE_REQUESTED;
-        lastDnsRequest = Millis();
+        lastDnsRequest = HAL_GetTick();
         dnslkup_request(buf,hostname);
         continue;
       }
       if (dns_state!=DNS_STATE_ANSWER){
         // retry every minute if dns-lookup failed:
-        if (Millis() > (lastDnsRequest + 60000L) ){
+        if (HAL_GetTick() > (lastDnsRequest + 60000L) ){
 	  if( --dnsTries <= 0 ) 
 	    return 0;		// Failed to allocate address
 
           dns_state=DNS_STATE_INIT;
-          lastDnsRequest = Millis();
+          lastDnsRequest = HAL_GetTick();
         }
         // don't try to use client before
         // we have a result of dns-lookup
@@ -460,7 +460,7 @@ uint8_t ES_check_for_dhcp_answer(uint8_t *buf,uint16_t plen){
 uint8_t allocateIPAddress(uint8_t *buf, uint16_t buffer_size, uint8_t *mymac, uint16_t myport, uint8_t *myip, uint8_t *mynetmask, uint8_t *gwip, uint8_t *dnsip, uint8_t *dhcpsvrip ) {
   uint16_t dat_p;
   int plen = 0;
-  long lastDhcpRequest = Millis();
+  long lastDhcpRequest = HAL_GetTick();
   uint8_t dhcpState = 0;
   bool gotIp = FALSE;
   uint8_t dhcpTries = 10;	// After 10 attempts fail gracefully so other action can be carried out
@@ -472,12 +472,12 @@ uint8_t allocateIPAddress(uint8_t *buf, uint16_t buffer_size, uint8_t *mymac, ui
     plen = enc28j60PacketReceive(buffer_size, buf);
     dat_p=packetloop_icmp_tcp(buf,plen);
     if(dat_p==0) {
-      int retstat = check_for_dhcp_answer( buf, plen);
+      check_for_dhcp_answer( buf, plen);
       dhcpState = dhcp_state();
       // we are idle here
       if( dhcpState != DHCP_STATE_OK ) {
-        if (Millis() > (lastDhcpRequest + 10000L) ){
-          lastDhcpRequest = Millis();
+        if (HAL_GetTick() > (lastDhcpRequest + 10000L) ){
+          lastDhcpRequest = HAL_GetTick();
 	  if( --dhcpTries <= 0 ) 
 		  return 0;		// Failed to allocate address
           // send dhcp

@@ -1417,7 +1417,7 @@ void client_http_post(char *urlbuf, char *hoststr, char *additionalheaderline, c
         client_method=method;
         client_postval=postval;
         browsertype=1;
-        client_browser_callback=callback;
+        client_browser_callback=(void (*)(uint8_t,uint16_t,uint16_t))callback;
         www_fd=client_tcp_req(&www_client_internal_result_callback,&www_client_internal_datafill_callback,80);
 }
 #endif // WWW_client

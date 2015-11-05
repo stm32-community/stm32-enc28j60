@@ -97,7 +97,7 @@ uint8_t dhcp_state(void)
         // leaseStart - start time in millis
         // leaseTime - length of lease in millis
         //
-        if( dhcpState == DHCP_STATE_OK && (leaseStart + leaseTime) <= Millis() ) {
+        if( dhcpState == DHCP_STATE_OK && (leaseStart + leaseTime) <= HAL_GetTick() ) {
                 // Calling app needs to detect this and init renewal
                 dhcpState = DHCP_STATE_RENEW;
         }
@@ -151,9 +151,7 @@ void dhcp_request_ip(uint8_t *buf )
 
 // Main DHCP message sending function, either DHCPDISCOVER or DHCPREQUEST
 void dhcp_send(uint8_t *buf, uint8_t requestType ) {
-        uint8_t lenpos,lencnt;
         int i=0;
-        char c;
         haveDhcpAnswer=0;
         dhcp_ansError=0;
         dhcptid_l++; // increment for next request, finally wrap
@@ -173,7 +171,7 @@ void dhcp_send(uint8_t *buf, uint8_t requestType ) {
 
         // Build DHCP Packet from buf[UDP_DATA_P]
         // Make dhcpPtr start of UDP data buffer
-        dhcpData *dhcpPtr = &buf[UDP_DATA_P];
+        dhcpData *dhcpPtr = (dhcpData *)&buf[UDP_DATA_P];
         // 0-3 op, htype, hlen, hops
         dhcpPtr->op = DHCP_BOOTREQUEST;
         dhcpPtr->htype = 1;
@@ -250,7 +248,7 @@ void dhcp_send(uint8_t *buf, uint8_t requestType ) {
 // Return 0 for nothing processed, 1 for done soemthing
 uint8_t check_for_dhcp_answer(uint8_t *buf, uint16_t plen){
     // Map struct onto payload
-    dhcpData *dhcpPtr = &buf[UDP_DATA_P];
+    dhcpData *dhcpPtr = (dhcpData *)&buf[UDP_DATA_P];
     if (plen >= 70 && buf[UDP_SRC_PORT_L_P] == DHCP_SRC_PORT &&
             dhcpPtr->op == DHCP_BOOTREPLY && dhcpPtr->xid == currentXid ) {
         // Check for lease expiry
@@ -268,7 +266,7 @@ uint8_t check_for_dhcp_answer(uint8_t *buf, uint16_t plen){
 
 uint8_t have_dhcpoffer (uint8_t *buf,uint16_t plen) {
     // Map struct onto payload
-    dhcpData *dhcpPtr = buf + UDP_DATA_P;
+    dhcpData *dhcpPtr = (dhcpData *)((uint8_t *)buf + UDP_DATA_P);
     // Offered IP address is in yiaddr
     memcpy(dhcpip, dhcpPtr->yiaddr, 4);
     // Scan through variable length option list identifying options we want
@@ -300,7 +298,7 @@ uint8_t have_dhcpoffer (uint8_t *buf,uint16_t plen) {
 
 uint8_t have_dhcpack (uint8_t *buf,uint16_t plen) {
     dhcpState = DHCP_STATE_OK;
-    leaseStart = Millis();
+    leaseStart = HAL_GetTick();
     // Turn off broadcast. Application if it needs it can re-enable it
     enc28j60DisableBroadcast();
     return 2;
