@@ -88,23 +88,40 @@ void enc28j60_set_spi(SPI_HandleTypeDef *hspi_new)
 	hspi = hspi_new;
 }
 
-extern HAL_StatusTypeDef SPI_WaitFlagStateUntilTimeout(SPI_HandleTypeDef *hspi, uint32_t Flag, uint32_t State, uint32_t Timeout);
-unsigned char ENC28J60_SendByte(unsigned char dt)
+void error (float error_num, char infinite);
+unsigned char ENC28J60_SendByte(uint8_t tx)
 {
 	if (hspi == NULL)
 		return 0;
 //	while(SPI_I2S_GetFlagStatus(hspi->Instance, SPI_I2S_FLAG_TXE) == RESET);
-	SPI_WaitFlagStateUntilTimeout(hspi, SPI_FLAG_TXE, RESET, 0xffffffff);
+//	SPI_WaitFlagStateUntilTimeout(hspi, SPI_FLAG_TXE, RESET, 0xffffffff);
 
+/*
 	//SPI_I2S_SendData(hspi->Instance, dt);
-	HAL_SPI_Transmit(hspi, &dt, 1, 0xffffffff);
+	int r;
+	r = HAL_SPI_Transmit(hspi, &dt, 1, 0xffffffff);
 
+	if (r != HAL_OK)
+		error(r, 0);
 	//while(SPI_I2S_GetFlagStatus(hspi->Instance, SPI_I2S_FLAG_RXNE) == RESET);
-	SPI_WaitFlagStateUntilTimeout(hspi, SPI_FLAG_RXNE, RESET, 0xffffffff);
+//	SPI_WaitFlagStateUntilTimeout(hspi, SPI_FLAG_RXNE, RESET, 0xffffffff);
     
 	//return SPI_I2S_ReceiveData(hspi->Instance);
-	HAL_SPI_Receive(hspi, &dt, 1, 0xffffffff);
-	return dt;
+	r = HAL_SPI_Receive(hspi, &dt, 1, 0xffffffff);
+
+	if (r != HAL_OK)
+		error(r, 0);
+*/
+
+	uint8_t rx = 0;
+	int r;
+
+	r = HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 0xffffffff);
+
+	if (r != HAL_OK)
+		error(r, 0);
+
+	return rx;
 }
 
 uint8_t enc28j60ReadOp(uint8_t op, uint8_t address)
