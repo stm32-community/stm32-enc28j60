@@ -4,9 +4,22 @@
 #include "stm32includes.h"
 #define Delay HAL_Delay
 
+#ifndef ETHERNET_LED_GPIO
+#	error Please define ETHERNET_LED_GPIO, for example by gcc option -DETHERNET_LED_GPIO=GPIOA
+#endif
+#ifndef ETHERNET_LED_PIN
+#	error Please define ETHERNET_LED_PIN, for example by gcc option -DETHERNET_LED_PIN=GPIO_PIN_5
+#endif
 
-#define disableChip  GPIOA->BSRR = GPIO_PIN_4;     GPIOA->BSRR = GPIO_PIN_5 << 16; Delay(2);
-#define enableChip   GPIOA->BSRR = GPIO_PIN_4<<16; GPIOA->BSRR = GPIO_PIN_5;       Delay(2);
+#ifndef ETHERNET_CS_GPIO
+#	error Please define chip-select GPIO port ETHERNET_CS_GPIO, for example by gcc option -DETHERNET_CSP_GPIO=GPIOA
+#endif
+#ifndef ETHERNET_CS_PIN
+#	error Please define chip-select pin ETHERNET_CS_PIN, for example by gcc option -DETHERNET_CS_PIN=GPIO_PIN_4
+#endif
+
+#define disableChip  ETHERNET_CS_GPIO->BSRR = ETHERNET_CS_PIN;     ETHERNET_LED_GPIO->BSRR = ETHERNET_LED_PIN << 16; Delay(2);
+#define enableChip   ETHERNET_CS_GPIO->BSRR = ETHERNET_CS_PIN<<16; ETHERNET_LED_GPIO->BSRR = ETHERNET_LED_PIN;       Delay(2);
 //#define disableChip  {}
 //#define enableChip   {}
 
