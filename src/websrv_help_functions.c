@@ -114,7 +114,7 @@ void urlencode(char *str,char *urlbuf)
 {
         char c;
         while ((c = *str)) {
-                if (c == ' '||isalnum(c)){ 
+                if (c == ' '||isalnum((unsigned char)c)){ 
                         if (c == ' '){ 
                                 c = '+';
                         }
@@ -148,7 +148,7 @@ uint8_t parse_ip(uint8_t *bytestr,char *str)
         i=0;
         while(*str && i<4){
                 // if a number then start
-                if (sptr==NULL && isdigit(*str)){
+                if (sptr==NULL && isdigit((unsigned char)*str)){
                         sptr=str;
                 }
                 if (*str == '.'){

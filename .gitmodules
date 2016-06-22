@@ -1,3 +1,0 @@
-[submodule "libraries/stm32fxxx_hal_libraries"]
-	path = libraries/stm32fxxx_hal_libraries
-	url = https://github.com/MaJerle/stm32fxxx_hal_libraries

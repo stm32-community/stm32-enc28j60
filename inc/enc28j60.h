@@ -2,7 +2,8 @@
 #define __ENC28J60_H
 
 #include "stm32includes.h"
-#include "../libraries/stm32fxxx_hal_libraries/00-STM32_LIBRARIES/tm_stm32_delay.h"
+#define Delay HAL_Delay
+
 
 #define disableChip  GPIOA->BSRR = GPIO_PIN_4;     GPIOA->BSRR = GPIO_PIN_5 << 16; Delay(2);
 #define enableChip   GPIOA->BSRR = GPIO_PIN_4<<16; GPIOA->BSRR = GPIO_PIN_5;       Delay(2);
