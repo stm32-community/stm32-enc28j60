@@ -36,7 +36,7 @@ static inline void uDelay(uint32_t useconds) {
 #if ETHERNET_CS_DELAY >= 10
 #	define ETHERNET_CS_DELAY_PROC {volatile uint32_t i=ETHERNET_CS_DELAY; while(i--);}
 #else
-#	define Delay(ETHERNET_CS_DELAY)
+#	define ETHERNET_CS_DELAY_PROC Delay(ETHERNET_CS_DELAY)
 #endif
 
 #define disableChip  ETHERNET_CS_GPIO->BSRR = ETHERNET_CS_PIN;     ETHERNET_LED_GPIO->BSRR = ETHERNET_LED_PIN << 16; ETHERNET_CS_DELAY_PROC;
