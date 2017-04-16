@@ -108,6 +108,8 @@ const char iphdr[] ={0x45,0,0,0x82,0,0,0x40,0,0x20}; // 0x82 is the total len on
 const char ntpreqhdr[] ={0xe3,0,4,0xfa,0,1,0,1,0,0};
 #endif
 
+#ifndef DISABLE_IP_STACK
+
 // The Ip checksum is calculated over the ip header only starting
 // with the header length field and a total length of 20 bytes
 // unitl ip.dst
@@ -172,6 +174,8 @@ uint16_t checksum(uint8_t *buf, uint16_t len,uint8_t type){
         return( (uint16_t) sum ^ 0xFFFF);
 }
 
+#endif
+
 // This initializes the web server
 // you must call this function once before you use any of the other functions:
 void init_ip_arp_udp_tcp(uint8_t *mymac,uint8_t *myip,uint16_t port){
@@ -188,6 +192,8 @@ void init_ip_arp_udp_tcp(uint8_t *mymac,uint8_t *myip,uint16_t port){
                 i++;
         }
 }
+
+#ifndef DISABLE_IP_STACK
 
 uint8_t check_ip_message_is_from(uint8_t *buf,uint8_t *ip)
 {
@@ -1730,5 +1736,7 @@ uint16_t packetloop_icmp_tcp(uint8_t *buf,uint16_t plen)
         }
         return(0);
 }
+
+#endif
 
 /* end of ip_arp_udp.c */
