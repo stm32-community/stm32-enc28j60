@@ -493,8 +493,10 @@ uint8_t allocateIPAddress(uint8_t *buf, uint16_t buffer_size, uint8_t *mymac, ui
           // Set the Router IP
           client_set_gwip(gwip);  // e.g internal IP of dsl router
 
+#ifdef DNS_client
           // Set the DNS server IP address if required, or use default
           dnslkup_set_dnsip( dnsip );
+#endif
 
         }
       }
