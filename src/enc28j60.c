@@ -4,7 +4,7 @@ extern void Error_Handler(void);
 static uint8_t Enc28j60Bank;
 static uint16_t gNextPacketPtr;
 static uint8_t erxfcon;
-SPI_HandleTypeDef *hspi = NULL;
+static SPI_HandleTypeDef *hspi = NULL;
 
 #if 0
 void ENC28J60_hspi->Instance_Configuration(void)
