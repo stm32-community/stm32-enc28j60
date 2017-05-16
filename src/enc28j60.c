@@ -363,7 +363,7 @@ void enc28j60EnableBroadcast( void ) {
 }
 
 void enc28j60DisableBroadcast( void ) {
-	erxfcon &= (0xff ^ ERXFCON_BCEN);
+	erxfcon &= ~ERXFCON_BCEN;
 	enc28j60Write(ERXFCON, erxfcon);
 }
 
@@ -373,7 +373,7 @@ void enc28j60EnableMulticast( void ) {
 }
 
 void enc28j60DisableMulticast( void ) {
-	erxfcon &= (0xff ^ ERXFCON_MCEN);
+	erxfcon &= ~ERXFCON_MCEN;
 	enc28j60Write(ERXFCON, erxfcon);
 }
 
