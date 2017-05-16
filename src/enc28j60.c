@@ -382,7 +382,7 @@ void enc28j60DisableMulticast( void ) {
 uint8_t enc28j60linkup(void)
 {
         // bit 10 (= bit 3 in upper reg)
-	return(enc28j60PhyReadH(PHSTAT2) && 4);
+	return(enc28j60PhyReadH(PHSTAT2) & 4);
 }
 
 void enc28j60PacketSend(uint16_t len, uint8_t* packet)
