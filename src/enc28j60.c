@@ -4,7 +4,7 @@ extern void Error_Handler(void);
 static uint8_t Enc28j60Bank;
 static uint16_t gNextPacketPtr;
 static uint8_t erxfcon;
-SPI_HandleTypeDef *hspi = NULL;
+static SPI_HandleTypeDef *hspi = NULL;
 
 #if 0
 void ENC28J60_hspi->Instance_Configuration(void)
@@ -363,7 +363,7 @@ void enc28j60EnableBroadcast( void ) {
 }
 
 void enc28j60DisableBroadcast( void ) {
-	erxfcon &= (0xff ^ ERXFCON_BCEN);
+	erxfcon &= ~ERXFCON_BCEN;
 	enc28j60Write(ERXFCON, erxfcon);
 }
 
@@ -373,7 +373,7 @@ void enc28j60EnableMulticast( void ) {
 }
 
 void enc28j60DisableMulticast( void ) {
-	erxfcon &= (0xff ^ ERXFCON_MCEN);
+	erxfcon &= ~ERXFCON_MCEN;
 	enc28j60Write(ERXFCON, erxfcon);
 }
 
@@ -382,7 +382,7 @@ void enc28j60DisableMulticast( void ) {
 uint8_t enc28j60linkup(void)
 {
         // bit 10 (= bit 3 in upper reg)
-	return(enc28j60PhyReadH(PHSTAT2) && 4);
+	return(enc28j60PhyReadH(PHSTAT2) & 4);
 }
 
 void enc28j60PacketSend(uint16_t len, uint8_t* packet)

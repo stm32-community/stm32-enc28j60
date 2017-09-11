@@ -60,7 +60,7 @@ typedef struct dhcpData {
         // options
         // dont include as its variable size,
         // just tag onto end of structure
-} dhcpData;
+} __attribute__((packed)) dhcpData ;
 
 static uint8_t dhcptid_l=0; // a counter for transaction ID
 // src port high byte must be a a0 or higher:
@@ -178,9 +178,9 @@ void dhcp_send(uint8_t *buf, uint8_t requestType ) {
         dhcpPtr->hlen = 6;
         dhcpPtr->hops = 0;
         // 4-7 xid
-        dhcpPtr->xid = currentXid;
+        memcpy(&dhcpPtr->xid, &currentXid, sizeof(currentXid));
         // 8-9 secs
-        dhcpPtr->secs = currentSecs;
+        memcpy(&dhcpPtr->secs, &currentSecs, sizeof(currentSecs));
         // 16-19 yiaddr
         memset(dhcpPtr->yiaddr, 0, 4);
         // 28-43 chaddr(16)
@@ -250,7 +250,7 @@ uint8_t check_for_dhcp_answer(uint8_t *buf, uint16_t plen){
     // Map struct onto payload
     dhcpData *dhcpPtr = (dhcpData *)&buf[UDP_DATA_P];
     if (plen >= 70 && buf[UDP_SRC_PORT_L_P] == DHCP_SRC_PORT &&
-            dhcpPtr->op == DHCP_BOOTREPLY && dhcpPtr->xid == currentXid ) {
+            dhcpPtr->op == DHCP_BOOTREPLY && !memcmp(&dhcpPtr->xid, &currentXid, 4) ) {
         // Check for lease expiry
         // uint32_t currentSecs = millis();
         int optionIndex = UDP_DATA_P + sizeof( dhcpData ) + 4;
