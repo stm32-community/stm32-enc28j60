@@ -22,7 +22,7 @@ static inline void uDelay(uint32_t useconds) {
 #endif
 
 #ifndef ETHERNET_CS_GPIO
-#	error Please define chip-select GPIO port ETHERNET_CS_GPIO, for example by gcc option -DETHERNET_CSP_GPIO=GPIOA
+#	error Please define chip-select GPIO port ETHERNET_CS_GPIO, for example by gcc option -DETHERNET_CS_GPIO=GPIOA
 #endif
 #ifndef ETHERNET_CS_PIN
 #	error Please define chip-select pin ETHERNET_CS_PIN, for example by gcc option -DETHERNET_CS_PIN=GPIO_PIN_4
@@ -39,8 +39,12 @@ static inline void uDelay(uint32_t useconds) {
 #	define ETHERNET_CS_DELAY_PROC Delay(ETHERNET_CS_DELAY)
 #endif
 
-#define disableChip  ETHERNET_CS_GPIO->BSRR = ETHERNET_CS_PIN;     ETHERNET_LED_GPIO->BSRR = ETHERNET_LED_PIN << 16; ETHERNET_CS_DELAY_PROC;
-#define enableChip   ETHERNET_CS_GPIO->BSRR = ETHERNET_CS_PIN<<16; ETHERNET_LED_GPIO->BSRR = ETHERNET_LED_PIN;       ETHERNET_CS_DELAY_PROC;
+#define disableChip  ETHERNET_CS_GPIO->BSRR = ETHERNET_CS_PIN;\
+	ETHERNET_LED_GPIO->BSRR = ETHERNET_LED_PIN << 16;\
+	ETHERNET_CS_DELAY_PROC;
+#define enableChip   ETHERNET_CS_GPIO->BSRR = ETHERNET_CS_PIN<<16;\
+	ETHERNET_LED_GPIO->BSRR = ETHERNET_LED_PIN;\
+	ETHERNET_CS_DELAY_PROC;
 //#define disableChip  {}
 //#define enableChip   {}
 
@@ -48,9 +52,9 @@ static inline void uDelay(uint32_t useconds) {
 // ENC28J60 Control Registers
 // Control register definitions are a combination of address,
 // bank number, and Ethernet/MAC/PHY indicator bits.
-// - Register address        (bits 0-4)
-// - Bank number        (bits 5-6)
-// - MAC/PHY indicator        (bit 7)
+// - Register address       (bits 0-4)
+// - Bank number            (bits 5-6)
+// - MAC/PHY indicator      (bit 7)
 #define ADDR_MASK        0x1F
 #define BANK_MASK        0x60
 #define SPRD_MASK        0x80
@@ -269,16 +273,16 @@ static inline void uDelay(uint32_t useconds) {
 // buffer boundaries applied to internal 8K ram
 // the entire available packet buffer space is allocated
 //
-// start with recbuf at 0/
+// start with RX buf at 0/
 #define RXSTART_INIT     0x0
-// receive buffer end
+// RX buffer end
 #define RXSTOP_INIT      (0x1FFF-0x0600-1)
-// start TX buffer at 0x1FFF-0x0600, pace for one full ethernet frame (~1500 bytes)
+// start TX buffer at 0x1FFF-0x0600, place for one full ethernet frame (~1500 bytes)
 #define TXSTART_INIT     (0x1FFF-0x0600)
-// stp TX buffer at end of mem
+// stop TX buffer at end of mem
 #define TXSTOP_INIT      0x1FFF
 //
-// max frame length which the conroller will accept:
+// max frame length which the controller will accept:
 #define        MAX_FRAMELEN        1500        // (note: maximum ethernet frame length would be 1518)
 //#define MAX_FRAMELEN     600
 
