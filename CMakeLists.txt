@@ -14,6 +14,7 @@ set(SOURCES
 )
 
 set(HEADERS
+    src/stm32f4xx_hal_conf.h
     src/defines.h
     src/enc28j60.h
     src/ip_arp_udp_tcp.h
@@ -51,6 +52,7 @@ add_compile_definitions(
     DNS_client=${DNS_client}
     DHCP_client=${DHCP_client}
     PING_client=${PING_client}
+    PINGPATTERN=${PINGPATTERN}
     TCP_client=${TCP_client}
     WWW_client=${WWW_client}
     FROMDECODE_websrv_help=${FROMDECODE_websrv_help}
