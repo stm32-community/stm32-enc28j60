@@ -27,7 +27,6 @@
 #define FALSE 0
 
 #include <inttypes.h>
-#include "ip_config.h"
 #include "enc28j60.h"
 #include "ip_arp_udp_tcp.h"
 #include "net.h"

@@ -45,7 +45,6 @@ The file should be extracted to the sketchbook/libraries/ folder so that there i
 
  */
 
-#include "ip_config.h"
 #include "enc28j60.h"
 #include "ip_arp_udp_tcp.h"
 #include "websrv_help_functions.h"

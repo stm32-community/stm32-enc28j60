@@ -17,7 +17,6 @@
  *
  * Chip type           : ATMEGA88/168/328 with ENC28J60
  *********************************************/
-#include "ip_config.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -1336,6 +1335,7 @@ uint16_t www_client_internal_datafill_callback(uint8_t fd){
                         // if we don't use HTTP/1.1 + Connection: close
                         len=fill_tcp_data(bufptr,len," HTTP/1.1\r\nHost: ");
                         len=fill_tcp_data(bufptr,len,client_hoststr);
+                        // TODO: make User-Agent configurable with CMake
                         len=fill_tcp_data(bufptr,len,"\r\nUser-Agent: EtherShield/1.6\r\nAccept: text/html\r\nConnection: close\r\n\r\n");
                 }else{
                         // POST

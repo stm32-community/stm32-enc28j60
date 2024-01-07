@@ -11,7 +11,6 @@
  *********************************************/
 #include <string.h>
 #include <stdlib.h>
-#include "ip_config.h"
 #include "net.h"
 #include "ip_arp_udp_tcp.h"
 

@@ -16,7 +16,6 @@ set(SOURCES
 set(HEADERS
     src/defines.h
     src/enc28j60.h
-    src/ip_config.h
     src/ip_arp_udp_tcp.h
     src/net.h
     src/dhcp.h
@@ -25,7 +24,40 @@ set(HEADERS
     src/EtherShield.h
 )
 
-include_directories(src src/core)
+set(ETHERNET_LED_GPIO       "GPIOA"         CACHE INTERNAL "GPIO for ethernet LED")
+set(ETHERNET_LED_PIN        "GPIO_PIN_2"    CACHE INTERNAL "PIN for ethernet LED")
+set(ETHERNET_CS_GPIO        "GPIOA"         CACHE INTERNAL "GPIO for SPI chip select")
+set(ETHERNET_CS_PIN         "GPIO_PIN_3"    CACHE INTERNAL "PIN for SPI chip select")
+set(ETHERNET_CS_DELAY       "2"             CACHE INTERNAL "chip-select delay for ehternet")
+
+set(UDP_client              "1"     CACHE INTERNAL "enables UDP transport protocol")
+set(DNS_client              "1"     CACHE INTERNAL "enables DNS client")
+set(DHCP_client             "1"     CACHE INTERNAL "enables DHCP client")
+set(PING_client             "1"     CACHE INTERNAL "enables ICMP ping client")
+set(PINGPATTERN             0x42    CACHE INTERNAL "ping pattern value")
+set(TCP_client              "1"     CACHE INTERNAL "enables TCP transport protocol")
+set(WWW_client              "1"     CACHE INTERNAL "enables HTTP")
+set(FROMDECODE_websrv_help  "1"     CACHE INTERNAL "")
+set(URLENCODE_websrv_help   "1"     CACHE INTERNAL "")
+
+add_compile_definitions(
+    ETHERNET_LED_GPIO=${ETHERNET_LED_GPIO}
+    ETHERNET_LED_PIN=${ETHERNET_LED_PIN}
+    ETHERNET_CS_GPIO=${ETHERNET_CS_GPIO}
+    ETHERNET_CS_PIN=${ETHERNET_CS_PIN}
+    ETHERNET_CS_DELAY=${ETHERNET_CS_PIN}
+
+    UDP_client=${UDP_client}
+    DNS_client=${DNS_client}
+    DHCP_client=${DHCP_client}
+    PING_client=${PING_client}
+    TCP_client=${TCP_client}
+    WWW_client=${WWW_client}
+    FROMDECODE_websrv_help=${FROMDECODE_websrv_help}
+    URLENCODE_websrv_help=${URLENCODE_websrv_help}
+)
+
+include_directories(src)
 set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 
 set(HAL_COMP_LIST RCC GPIO CORTEX)
