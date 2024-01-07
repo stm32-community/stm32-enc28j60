@@ -1,0 +1,3 @@
+.vscode/
+build/
+stm32-env.ps1
