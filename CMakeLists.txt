@@ -42,7 +42,23 @@ set(WWW_USER_AGENT          "stm32-enc28j60/1.0"    CACHE INTERNAL "HTTP User-Ag
 set(FROMDECODE_websrv_help  "1"                     CACHE INTERNAL "")
 set(URLENCODE_websrv_help   "1"                     CACHE INTERNAL "")
 
-add_compile_definitions(
+set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
+
+set(HAL_COMP_LIST RCC GPIO CORTEX)
+set(CMSIS_COMP_LIST "")
+
+list(APPEND CMSIS_COMP_LIST STM32F4)
+list(APPEND HAL_COMP_LIST STM32F4)
+
+if(NOT STM32_CMAKE_PACKAGES)
+    find_package(CMSIS COMPONENTS "${CMSIS_COMP_LIST}" REQUIRED)
+    find_package(HAL COMPONENTS "${HAL_COMP_LIST}" REQUIRED)
+    set(STM32_CMAKE_PACKAGES 1)
+endif()
+
+add_library(stm32-enc28j60 ${SOURCES} ${HEADERS})
+target_include_directories(stm32-enc28j60 PUBLIC src)
+target_compile_definitions(stm32-enc28j60 PUBLIC
     ETHERNET_LED_GPIO=${ETHERNET_LED_GPIO}
     ETHERNET_LED_PIN=${ETHERNET_LED_PIN}
     ETHERNET_CS_GPIO=${ETHERNET_CS_GPIO}
@@ -61,19 +77,6 @@ add_compile_definitions(
     URLENCODE_websrv_help=${URLENCODE_websrv_help}
 )
 
-include_directories(src)
-set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
-
-set(HAL_COMP_LIST RCC GPIO CORTEX)
-set(CMSIS_COMP_LIST "")
-
-list(APPEND CMSIS_COMP_LIST STM32F4)
-list(APPEND HAL_COMP_LIST STM32F4)
-
-find_package(CMSIS COMPONENTS "${CMSIS_COMP_LIST}" REQUIRED)
-find_package(HAL COMPONENTS "${HAL_COMP_LIST}" REQUIRED)
-
-add_library(stm32-enc28j60 ${SOURCES} ${HEADERS})
 target_link_libraries(stm32-enc28j60
     HAL::STM32::F4::RCC
     HAL::STM32::F4::GPIO
