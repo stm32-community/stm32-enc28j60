@@ -31,15 +31,16 @@ set(ETHERNET_CS_GPIO        "GPIOA"         CACHE INTERNAL "GPIO for SPI chip se
 set(ETHERNET_CS_PIN         "GPIO_PIN_3"    CACHE INTERNAL "PIN for SPI chip select")
 set(ETHERNET_CS_DELAY       "2"             CACHE INTERNAL "chip-select delay for ehternet")
 
-set(UDP_client              "1"     CACHE INTERNAL "enables UDP transport protocol")
-set(DNS_client              "1"     CACHE INTERNAL "enables DNS client")
-set(DHCP_client             "1"     CACHE INTERNAL "enables DHCP client")
-set(PING_client             "1"     CACHE INTERNAL "enables ICMP ping client")
-set(PINGPATTERN             0x42    CACHE INTERNAL "ping pattern value")
-set(TCP_client              "1"     CACHE INTERNAL "enables TCP transport protocol")
-set(WWW_client              "1"     CACHE INTERNAL "enables HTTP")
-set(FROMDECODE_websrv_help  "1"     CACHE INTERNAL "")
-set(URLENCODE_websrv_help   "1"     CACHE INTERNAL "")
+set(UDP_client              "1"                     CACHE INTERNAL "enables UDP transport protocol")
+set(DNS_client              "1"                     CACHE INTERNAL "enables DNS client")
+set(DHCP_client             "1"                     CACHE INTERNAL "enables DHCP client")
+set(PING_client             "1"                     CACHE INTERNAL "enables ICMP ping client")
+set(PINGPATTERN             0x42                    CACHE INTERNAL "ping pattern value")
+set(TCP_client              "1"                     CACHE INTERNAL "enables TCP transport protocol")
+set(WWW_client              "1"                     CACHE INTERNAL "enables HTTP")
+set(WWW_USER_AGENT          "stm32-enc28j60/1.0"    CACHE INTERNAL "HTTP User-Agent")
+set(FROMDECODE_websrv_help  "1"                     CACHE INTERNAL "")
+set(URLENCODE_websrv_help   "1"                     CACHE INTERNAL "")
 
 add_compile_definitions(
     ETHERNET_LED_GPIO=${ETHERNET_LED_GPIO}
@@ -55,6 +56,7 @@ add_compile_definitions(
     PINGPATTERN=${PINGPATTERN}
     TCP_client=${TCP_client}
     WWW_client=${WWW_client}
+    WWW_USER_AGENT="${WWW_USER_AGENT}"
     FROMDECODE_websrv_help=${FROMDECODE_websrv_help}
     URLENCODE_websrv_help=${URLENCODE_websrv_help}
 )
