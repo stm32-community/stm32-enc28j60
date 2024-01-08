@@ -1399,7 +1399,7 @@ uint8_t www_client_internal_result_callback(uint8_t fd, uint8_t statuscode, uint
 // statuscode is zero if the answer from the web server is 200 OK (e.g HTTP/1.1 200 OK)
 //
 //
-void client_browse_url(char *urlbuf, char *urlbuf_varpart, char *hoststr, void (*callback)(uint8_t,uint16_t,uint16_t))
+void client_http_get(char *urlbuf, char *urlbuf_varpart, char *hoststr, void (*callback)(uint8_t,uint16_t,uint16_t))
 {
         client_urlbuf=urlbuf;
         client_urlbuf_var=urlbuf_varpart;

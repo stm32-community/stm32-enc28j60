@@ -119,7 +119,7 @@ uint8_t allocateIPAddress(uint8_t *buf, uint16_t buffer_size, uint8_t *mymac, ui
 #define HTTP_HEADER_START ((uint16_t)TCP_SRC_PORT_H_P+(buf[TCP_HEADER_LEN_P]>>4)*4)
 #ifdef WWW_client
 // ----- http get
-void ES_client_browse_url(char *urlbuf, char *urlbuf_varpart, char *hoststr,
+void ES_client_http_get(char *urlbuf, char *urlbuf_varpart, char *hoststr,
 		void (*callback)(uint8_t,uint16_t,uint16_t));
 // The callback is a reference to a function which must look like this:
 // void browserresult_callback(uint8_t statuscode,uint16_t datapos)

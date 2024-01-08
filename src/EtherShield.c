@@ -278,9 +278,9 @@ uint16_t ES_tcp_get_dlength( uint8_t *buf ){
 
 // ----- http get
 
-void ES_client_browse_url(char *urlbuf, char *urlbuf_varpart, char *hoststr,
+void ES_client_http_get(char *urlbuf, char *urlbuf_varpart, char *hoststr,
 		void (*callback)(uint8_t,uint16_t,uint16_t)) {
-	client_browse_url(urlbuf, urlbuf_varpart, hoststr, callback);
+	client_http_get(urlbuf, urlbuf_varpart, hoststr, callback);
 }
 
 void ES_client_http_post(char *urlbuf, char *hoststr, char *additionalheaderline,
