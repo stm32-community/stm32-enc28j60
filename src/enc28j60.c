@@ -1,6 +1,6 @@
 #include "enc28j60.h"
+#include "error_handler.h"
 
-extern void Error_Handler(void);
 static uint8_t Enc28j60Bank;
 static uint16_t gNextPacketPtr;
 static uint8_t erxfcon;
@@ -120,7 +120,7 @@ unsigned char ENC28J60_SendByte(uint8_t tx)
 	r = HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 0xffffffff);
 
 	if (r != HAL_OK)
-		Error_Handler();
+		ENC28j60_Error_Handler(SPI_ERROR);
 
 	return rx;
 }

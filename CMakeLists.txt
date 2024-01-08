@@ -11,6 +11,7 @@ set(SOURCES
     src/dnslkup.c
     src/websrv_help_functions.c
     src/EtherShield.c
+    src/error_handler.c
 )
 
 set(HEADERS
@@ -23,6 +24,7 @@ set(HEADERS
     src/dnslkup.h
     src/websrv_help_functions.h
     src/EtherShield.h
+    src/error_handler.h
 )
 
 set(ETHERNET_LED_GPIO       "GPIOA"         CACHE INTERNAL "GPIO for ethernet LED")
