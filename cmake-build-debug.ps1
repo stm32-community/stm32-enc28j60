@@ -1,0 +1,1 @@
+cmake -DCMAKE_TOOLCHAIN_FILE="$env:STM32_TOOLCHAIN_PATH" -DCMAKE_BUILD_TYPE=Debug -S . -B build -G "Ninja"

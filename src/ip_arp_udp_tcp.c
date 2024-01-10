@@ -17,7 +17,6 @@
  *
  * Chip type           : ATMEGA88/168/328 with ENC28J60
  *********************************************/
-#include "ip_config.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -1336,7 +1335,7 @@ uint16_t www_client_internal_datafill_callback(uint8_t fd){
                         // if we don't use HTTP/1.1 + Connection: close
                         len=fill_tcp_data(bufptr,len," HTTP/1.1\r\nHost: ");
                         len=fill_tcp_data(bufptr,len,client_hoststr);
-                        len=fill_tcp_data(bufptr,len,"\r\nUser-Agent: EtherShield/1.6\r\nAccept: text/html\r\nConnection: close\r\n\r\n");
+                        len=fill_tcp_data(bufptr,len,"\r\nUser-Agent: " WWW_USER_AGENT "\r\nAccept: text/html\r\nConnection: close\r\n\r\n");
                 }else{
                         // POST
                         if( client_method ) {
@@ -1352,7 +1351,7 @@ uint16_t www_client_internal_datafill_callback(uint8_t fd){
                                 len=fill_tcp_data(bufptr,len,"\r\n");
                                 len=fill_tcp_data(bufptr,len,client_additionalheaderline);
                         }
-                        len=fill_tcp_data(bufptr,len,"\r\nUser-Agent: EtherShield/1.6\r\nAccept: */*\r\nConnection: close\r\n");
+                        len=fill_tcp_data(bufptr,len,"\r\nUser-Agent: " WWW_USER_AGENT "\r\nAccept: */*\r\nConnection: close\r\n");
                         len=fill_tcp_data(bufptr,len,"Content-Length: ");
                         //itoa(strlen(client_postval),strbuf,10);
                         sprintf(strbuf, "%d", strlen(client_postval));
@@ -1399,7 +1398,7 @@ uint8_t www_client_internal_result_callback(uint8_t fd, uint8_t statuscode, uint
 // statuscode is zero if the answer from the web server is 200 OK (e.g HTTP/1.1 200 OK)
 //
 //
-void client_browse_url(char *urlbuf, char *urlbuf_varpart, char *hoststr, void (*callback)(uint8_t,uint16_t,uint16_t))
+void client_http_get(char *urlbuf, char *urlbuf_varpart, char *hoststr, void (*callback)(uint8_t,uint16_t,uint16_t))
 {
         client_urlbuf=urlbuf;
         client_urlbuf_var=urlbuf_varpart;

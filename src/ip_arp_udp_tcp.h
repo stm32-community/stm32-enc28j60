@@ -137,7 +137,7 @@ uint16_t tcp_get_dlength ( uint8_t *buf );
 #ifdef WWW_client
 
 // ----- http get
-void client_browse_url(char *urlbuf, char *urlbuf_varpart, char *hoststr, void (*callback)(uint8_t,uint16_t,uint16_t));
+void client_http_get(char *urlbuf, char *urlbuf_varpart, char *hoststr, void (*callback)(uint8_t,uint16_t,uint16_t));
 
 // The callback is a reference to a function which must look like this:
 // void browserresult_callback(uint8_t statuscode,uint16_t datapos)

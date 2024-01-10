@@ -16,4 +16,12 @@
 #	include "stm32f1xx_hal_spi.h"
 #endif
 
+#include "stm32f4xx.h"
+#include "stm32f4xx_hal.h"
+#include "stm32f4xx_hal_gpio.h"
+#include "stm32f4xx_hal_def.h"
+#include "stm32f4xx_hal_spi.h"
+
+#include <stdint.h>
+
 #endif

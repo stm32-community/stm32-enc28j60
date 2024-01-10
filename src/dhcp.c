@@ -15,7 +15,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include "enc28j60.h"
-#include "ip_config.h"
 #include "net.h"
 #include "dhcp.h"
 #include "ip_arp_udp_tcp.h"

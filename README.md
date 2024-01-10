@@ -1,12 +1,17 @@
-Description
------------
+# stm32-enc28j60
 
-An implementation of ENC28J60 driver for STM32 MCU. Tested only on sending UDP packets and only on MCUs STM32F091xC, STM32F030x6 and STM32F103xB. If you need to use another STM32 MCU then don't forget to edit file `inc/stm32includes.h`.
+STM32 ENC28J60 ethernet driver, ported for CMake using [stm32-base](https://github.com/DVALight/stm32-base) and [stm32-cmake](https://github.com/ObKo/stm32-cmake)
 
-Working examples
-----------------
+## CMake
 
-* [dc-thermal-logger](https://devel.mephi.ru/dyokunev/dc-thermal-logger/src/master/collector/firmware/Src/main.c)
-* [CardLogger](https://devel.mephi.ru/AMGladtsin/STM32_Devel/src/master/SOFT/CardLogger/Src/main.c)
-* [enc28j60-helloWorld](https://devel.mephi.ru/dyokunev/nucleo-f091rc-rs232-enc28j60/src/master/Src/main.c)
+Builds as library that can be linked using CMake in other STM32 projects.
 
+Fully configurable, use variables defined in CMakeLists.txt to enable, disable and configure internet modules
+
+## Examples
+
+[dc-thermal-logger](https://github.com/mephi-ut/dc-thermal-logger/blob/master/collector/firmware/Src/main.c)
+
+[STM32_Devel](https://github.com/mephi-ut/STM32_Devel)
+
+[nucleo-f091rc-rs232-enc28j60](https://github.com/mephi-ut/nucleo-f091rc-rs232-enc28j60/blob/master/Src/main.c)
