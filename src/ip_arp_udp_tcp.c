@@ -75,7 +75,7 @@ static void (*icmp_callback)(uint8_t *ip);
 #define WGW_HAVE_GW_MAC 2
 #define WGW_REFRESHING 4
 #define WGW_ACCEPT_ARP_REPLY 8
-static int16_t delaycnt=1;
+static int16_t delaycnt=0;
 static uint8_t gwip[4];
 static uint8_t gwmacaddr[6];
 static uint8_t tcpsrvip[4];
