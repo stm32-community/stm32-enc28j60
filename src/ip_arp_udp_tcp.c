@@ -136,31 +136,31 @@ uint16_t checksum(uint8_t *buf, uint16_t len,uint8_t type)
   //        // Usable for ICMP and IP header
   //}
   if(type==1){
-          sum+=IP_PROTO_UDP_V; // protocol udp
-          // the length here is the length of udp (data+header len)
-          // =length given to this function - (IP.scr+IP.dst length)
-          sum+=len-8; // = real udp len
+    sum+=IP_PROTO_UDP_V; // protocol udp
+    // the length here is the length of udp (data+header len)
+    // =length given to this function - (IP.scr+IP.dst length)
+    sum+=len-8; // = real udp len
   }
   if(type==2){
-          sum+=IP_PROTO_TCP_V; 
-          // the length here is the length of tcp (data+header len)
-          // =length given to this function - (IP.scr+IP.dst length)
-          sum+=len-8; // = real tcp len
+    sum+=IP_PROTO_TCP_V; 
+    // the length here is the length of tcp (data+header len)
+    // =length given to this function - (IP.scr+IP.dst length)
+    sum+=len-8; // = real tcp len
   }
   // build the sum of 16bit words
   while(len >1){
-          sum += 0xFFFF & (((uint32_t)*buf<<8)|*(buf+1));
-          buf+=2;
-          len-=2;
+    sum += 0xFFFF & (((uint32_t)*buf<<8)|*(buf+1));
+    buf+=2;
+    len-=2;
   }
   // if there is a byte left then add it (padded with zero)
   if (len){
-          sum += ((uint32_t)(0xFF & *buf))<<8;
+    sum += ((uint32_t)(0xFF & *buf))<<8;
   }
   // now calculate the sum over the bytes in the sum
   // until the result is only 16bit long
   while (sum>>16){
-          sum = (sum & 0xFFFF)+(sum >> 16);
+    sum = (sum & 0xFFFF)+(sum >> 16);
   }
   // build 1's complement:
   return( (uint16_t) sum ^ 0xFFFF);
