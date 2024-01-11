@@ -590,21 +590,21 @@ void make_tcp_ack_from_any(uint8_t *buf,int16_t datlentoack,uint8_t addflags)
 // You must set TCP_FLAGS before calling this
 void make_tcp_ack_with_data_noflags(uint8_t *buf,uint16_t dlen)
 {
-        uint16_t j;
-        // total length field in the IP header must be set:
-        // 20 bytes IP + 20 bytes tcp (when no options) + len of data
-        j=IP_HEADER_LEN+TCP_HEADER_LEN_PLAIN+dlen;
-        buf[IP_TOTLEN_H_P]=j>>8;
-        buf[IP_TOTLEN_L_P]=j& 0xff;
-        fill_ip_hdr_checksum(buf);
-        // zero the checksum
-        buf[TCP_CHECKSUM_H_P]=0;
-        buf[TCP_CHECKSUM_L_P]=0;
-        // calculate the checksum, len=8 (start from ip.src) + TCP_HEADER_LEN_PLAIN + data len
-        j=checksum(&buf[IP_SRC_P], 8+TCP_HEADER_LEN_PLAIN+dlen,2);
-        buf[TCP_CHECKSUM_H_P]=j>>8;
-        buf[TCP_CHECKSUM_L_P]=j& 0xff;
-        enc28j60PacketSend(IP_HEADER_LEN+TCP_HEADER_LEN_PLAIN+dlen+ETH_HEADER_LEN,buf);
+  uint16_t j;
+  // total length field in the IP header must be set:
+  // 20 bytes IP + 20 bytes tcp (when no options) + len of data
+  j=IP_HEADER_LEN+TCP_HEADER_LEN_PLAIN+dlen;
+  buf[IP_TOTLEN_H_P]=j>>8;
+  buf[IP_TOTLEN_L_P]=j& 0xff;
+  fill_ip_hdr_checksum(buf);
+  // zero the checksum
+  buf[TCP_CHECKSUM_H_P]=0;
+  buf[TCP_CHECKSUM_L_P]=0;
+  // calculate the checksum, len=8 (start from ip.src) + TCP_HEADER_LEN_PLAIN + data len
+  j=checksum(&buf[IP_SRC_P], 8+TCP_HEADER_LEN_PLAIN+dlen,2);
+  buf[TCP_CHECKSUM_H_P]=j>>8;
+  buf[TCP_CHECKSUM_L_P]=j& 0xff;
+  enc28j60PacketSend(IP_HEADER_LEN+TCP_HEADER_LEN_PLAIN+dlen+ETH_HEADER_LEN,buf);
 }
 
 
@@ -616,27 +616,27 @@ void make_tcp_ack_with_data_noflags(uint8_t *buf,uint16_t dlen)
 // Used?
 void make_tcp_ack_with_data(uint8_t *buf,uint16_t dlen)
 {
-        uint16_t j;
-        // fill the header:
-        // This code requires that we send only one data packet
-        // because we keep no state information. We must therefore set
-        // the fin here:
-        buf[TCP_FLAGS_P]=TCP_FLAGS_ACK_V|TCP_FLAGS_PUSH_V|TCP_FLAGS_FIN_V;
+  uint16_t j;
+  // fill the header:
+  // This code requires that we send only one data packet
+  // because we keep no state information. We must therefore set
+  // the fin here:
+  buf[TCP_FLAGS_P]=TCP_FLAGS_ACK_V|TCP_FLAGS_PUSH_V|TCP_FLAGS_FIN_V;
 
-        // total length field in the IP header must be set:
-        // 20 bytes IP + 20 bytes tcp (when no options) + len of data
-        j=IP_HEADER_LEN+TCP_HEADER_LEN_PLAIN+dlen;
-        buf[IP_TOTLEN_H_P]=j>>8;
-        buf[IP_TOTLEN_L_P]=j& 0xff;
-        fill_ip_hdr_checksum(buf);
-        // zero the checksum
-        buf[TCP_CHECKSUM_H_P]=0;
-        buf[TCP_CHECKSUM_L_P]=0;
-        // calculate the checksum, len=8 (start from ip.src) + TCP_HEADER_LEN_PLAIN + data len
-        j=checksum(&buf[IP_SRC_P], 8+TCP_HEADER_LEN_PLAIN+dlen,2);
-        buf[TCP_CHECKSUM_H_P]=j>>8;
-        buf[TCP_CHECKSUM_L_P]=j& 0xff;
-        enc28j60PacketSend(IP_HEADER_LEN+TCP_HEADER_LEN_PLAIN+dlen+ETH_HEADER_LEN,buf);
+  // total length field in the IP header must be set:
+  // 20 bytes IP + 20 bytes tcp (when no options) + len of data
+  j=IP_HEADER_LEN+TCP_HEADER_LEN_PLAIN+dlen;
+  buf[IP_TOTLEN_H_P]=j>>8;
+  buf[IP_TOTLEN_L_P]=j& 0xff;
+  fill_ip_hdr_checksum(buf);
+  // zero the checksum
+  buf[TCP_CHECKSUM_H_P]=0;
+  buf[TCP_CHECKSUM_L_P]=0;
+  // calculate the checksum, len=8 (start from ip.src) + TCP_HEADER_LEN_PLAIN + data len
+  j=checksum(&buf[IP_SRC_P], 8+TCP_HEADER_LEN_PLAIN+dlen,2);
+  buf[TCP_CHECKSUM_H_P]=j>>8;
+  buf[TCP_CHECKSUM_L_P]=j& 0xff;
+  enc28j60PacketSend(IP_HEADER_LEN+TCP_HEADER_LEN_PLAIN+dlen+ETH_HEADER_LEN,buf);
 }
 
 
@@ -652,28 +652,23 @@ void make_tcp_ack_with_data(uint8_t *buf,uint16_t dlen)
 // length and checksum
 void www_server_reply(uint8_t *buf,uint16_t dlen)
 {
-        make_tcp_ack_from_any(buf,info_data_len,0); // send ack for http get
-        // fill the header:
-        // This code requires that we send only one data packet
-        // because we keep no state information. We must therefore set
-        // the fin here:
-        buf[TCP_FLAGS_P]=TCP_FLAGS_ACK_V|TCP_FLAGS_PUSH_V|TCP_FLAGS_FIN_V;
-        make_tcp_ack_with_data_noflags(buf,dlen); // send data
+  make_tcp_ack_from_any(buf,info_data_len,0); // send ack for http get
+  // fill the header:
+  // This code requires that we send only one data packet
+  // because we keep no state information. We must therefore set
+  // the fin here:
+  buf[TCP_FLAGS_P]=TCP_FLAGS_ACK_V|TCP_FLAGS_PUSH_V|TCP_FLAGS_FIN_V;
+  make_tcp_ack_with_data_noflags(buf,dlen); // send data
 }
 
 #if defined (NTP_client) ||  defined (WOL_client) || defined (UDP_client) || defined (TCP_client) || defined (PING_client)
 // fill buffer with a prog-mem string - CHANGED TO NON PROGMEM!
 void fill_buf_p(uint8_t *buf,uint16_t len, const char *s)
 {   
-        // fill in tcp data at position pos
-        //
-        // with no options the data starts after the checksum + 2 more bytes (urgent ptr)
-        while (len) {
-                *buf=*s;
-                buf++;
-                s++;
-                len--;
-        } 
+  // fill in tcp data at position pos
+  //
+  // with no options the data starts after the checksum + 2 more bytes (urgent ptr)
+  memcpy(buf, s, len);
 
 }
 #endif
@@ -684,48 +679,38 @@ void fill_buf_p(uint8_t *buf,uint16_t len, const char *s)
 // The ping is sent to destip  and mac gwmacaddr
 void client_icmp_request(uint8_t *buf,uint8_t *destip)
 {
-        uint8_t i=0;
-        uint16_t ck;
-        //
-        while(i<6){
-                buf[ETH_DST_MAC +i]=gwmacaddr[i]; // gw mac in local lan or host mac
-                buf[ETH_SRC_MAC +i]=macaddr[i];
-                i++;
-        }
-        buf[ETH_TYPE_H_P] = ETHTYPE_IP_H_V;
-        buf[ETH_TYPE_L_P] = ETHTYPE_IP_L_V;
-        fill_buf_p(&buf[IP_P],9,iphdr);
-        buf[IP_TOTLEN_L_P]=0x82;        // TUX Code has 0x54, here has 0x82
-        buf[IP_PROTO_P]=IP_PROTO_UDP_V;
-        i=0;
-        while(i<4){
-                buf[IP_DST_P+i]=destip[i];
-                buf[IP_SRC_P+i]=ipaddr[i];
-                i++;
-        }
-        fill_ip_hdr_checksum(buf);
-        buf[ICMP_TYPE_P]=ICMP_TYPE_ECHOREQUEST_V;
-        buf[ICMP_TYPE_P+1]=0; // code
-        // zero the checksum
-        buf[ICMP_CHECKSUM_H_P]=0;
-        buf[ICMP_CHECKSUM_L_P]=0;
-        // a possibly unique id of this host:
-        buf[ICMP_IDENT_H_P]=5; // some number 
-        buf[ICMP_IDENT_L_P]=ipaddr[3]; // last byte of my IP
-        //
-        buf[ICMP_IDENT_L_P+1]=0; // seq number, high byte
-        buf[ICMP_IDENT_L_P+2]=1; // seq number, low byte, we send only 1 ping at a time
-        // copy the data:
-        i=0;
-        while(i<56){ 
-                buf[ICMP_DATA_P+i]=PINGPATTERN;
-                i++;
-        }
-        //
-        ck=checksum(&buf[ICMP_TYPE_P], 56+8,0);
-        buf[ICMP_CHECKSUM_H_P]=ck>>8;
-        buf[ICMP_CHECKSUM_L_P]=ck& 0xff;
-        enc28j60PacketSend(98,buf);
+  uint16_t ck;
+  //
+  memcpy(&buf[ETH_DST_MAC], gwmacaddr, 6); // gw mac in local lan or host mac
+  memcpy(&buf[ETH_SRC_MAC], macaddr, 6);
+  buf[ETH_TYPE_H_P] = ETHTYPE_IP_H_V;
+  buf[ETH_TYPE_L_P] = ETHTYPE_IP_L_V;
+  fill_buf_p(&buf[IP_P],9,iphdr);
+  
+  buf[IP_TOTLEN_L_P]=0x82;        // TUX Code has 0x54, here has 0x82
+  buf[IP_PROTO_P]=IP_PROTO_UDP_V;
+  memcpy(&buf[IP_DST_P], destip, 4);
+  memcpy(&buf[IP_SRC_P], ipaddr, 4);
+  fill_ip_hdr_checksum(buf);
+  
+  buf[ICMP_TYPE_P]=ICMP_TYPE_ECHOREQUEST_V;
+  buf[ICMP_TYPE_P+1]=0; // code
+  // zero the checksum
+  buf[ICMP_CHECKSUM_H_P]=0;
+  buf[ICMP_CHECKSUM_L_P]=0;
+  // a possibly unique id of this host:
+  buf[ICMP_IDENT_H_P]=5; // some number 
+  buf[ICMP_IDENT_L_P]=ipaddr[3]; // last byte of my IP
+  //
+  buf[ICMP_IDENT_L_P+1]=0; // seq number, high byte
+  buf[ICMP_IDENT_L_P+2]=1; // seq number, low byte, we send only 1 ping at a time
+  // copy the data:
+  memset(&buf[ICMP_DATA_P], PINGPATTERN, 56);
+  //
+  ck=checksum(&buf[ICMP_TYPE_P], 56+8,0);
+  buf[ICMP_CHECKSUM_H_P]=ck>>8;
+  buf[ICMP_CHECKSUM_L_P]=ck& 0xff;
+  enc28j60PacketSend(98,buf);
 }
 #endif // PING_client
 
@@ -736,65 +721,55 @@ void client_icmp_request(uint8_t *buf,uint8_t *destip)
 //
 void client_ntp_request(uint8_t *buf,uint8_t *ntpip,uint8_t srcport)
 {
-        uint8_t i=0;
-        uint16_t ck;
-        //
-        while(i<6){
-                buf[ETH_DST_MAC +i]=gwmacaddr[i]; // gw mac in local lan or host mac
-                buf[ETH_SRC_MAC +i]=macaddr[i];
-                i++;
-        }
-        buf[ETH_TYPE_H_P] = ETHTYPE_IP_H_V;
-        buf[ETH_TYPE_L_P] = ETHTYPE_IP_L_V;
-        fill_buf_p(&buf[IP_P],9,iphdr);
-        buf[IP_TOTLEN_L_P]=0x4c;
-        buf[IP_PROTO_P]=IP_PROTO_UDP_V;
-        i=0;
-        while(i<4){
-                buf[IP_DST_P+i]=ntpip[i];
-                buf[IP_SRC_P+i]=ipaddr[i];
-                i++;
-        }
-        fill_ip_hdr_checksum(buf);
-        buf[UDP_DST_PORT_H_P]=0;
-        buf[UDP_DST_PORT_L_P]=0x7b; // ntp=123
-        buf[UDP_SRC_PORT_H_P]=10;
-        buf[UDP_SRC_PORT_L_P]=srcport; // lower 8 bit of src port
-        buf[UDP_LEN_H_P]=0;
-        buf[UDP_LEN_L_P]=56; // fixed len
-        // zero the checksum
-        buf[UDP_CHECKSUM_H_P]=0;
-        buf[UDP_CHECKSUM_L_P]=0;
-        // copy the data:
-        i=0;
-        // most fields are zero, here we zero everything and fill later
-        while(i<48){ 
-                buf[UDP_DATA_P+i]=0;
-                i++;
-        }
-        fill_buf_p(&buf[UDP_DATA_P],10,ntpreqhdr);
-        //
-        ck=checksum(&buf[IP_SRC_P], 16 + 48,1);
-        buf[UDP_CHECKSUM_H_P]=ck>>8;
-        buf[UDP_CHECKSUM_L_P]=ck& 0xff;
-        enc28j60PacketSend(90,buf);
+  uint16_t ck;
+  //
+  memcpy(&buf[ETH_DST_MAC], gwmacaddr, 6);
+  memcpy(&buf[ETH_SRC_MAC], macaddr, 6);
+  buf[ETH_TYPE_H_P] = ETHTYPE_IP_H_V;
+  buf[ETH_TYPE_L_P] = ETHTYPE_IP_L_V;
+  fill_buf_p(&buf[IP_P],9,iphdr);
+  
+  buf[IP_TOTLEN_L_P]=0x4c;
+  buf[IP_PROTO_P]=IP_PROTO_UDP_V;
+  memcpy(&buf[IP_DST_P], ntpip, 4);
+  memcpy(&buf[IP_SRC_P], ipaddr, 4);
+  fill_ip_hdr_checksum(buf);
+
+  buf[UDP_DST_PORT_H_P]=0;
+  buf[UDP_DST_PORT_L_P]=0x7b; // ntp=123
+  buf[UDP_SRC_PORT_H_P]=10;
+  buf[UDP_SRC_PORT_L_P]=srcport; // lower 8 bit of src port
+  buf[UDP_LEN_H_P]=0;
+  buf[UDP_LEN_L_P]=56; // fixed len
+  // zero the checksum
+  buf[UDP_CHECKSUM_H_P]=0;
+  buf[UDP_CHECKSUM_L_P]=0;
+  // copy the data:
+  // most fields are zero, here we zero everything and fill later
+  memset(&buf[UDP_DATA_P], 0, 48);
+  fill_buf_p(&buf[UDP_DATA_P],10,ntpreqhdr);
+  //
+  ck=checksum(&buf[IP_SRC_P], 16 + 48,1);
+  buf[UDP_CHECKSUM_H_P]=ck>>8;
+  buf[UDP_CHECKSUM_L_P]=ck& 0xff;
+  enc28j60PacketSend(90,buf);
 }
 // process the answer from the ntp server:
 // if dstport==0 then accept any port otherwise only answers going to dstport
 // return 1 on sucessful processing of answer
 uint8_t client_ntp_process_answer(uint8_t *buf,uint32_t *time,uint8_t dstport_l){
-        if (dstport_l){
-                if (buf[UDP_DST_PORT_L_P]!=dstport_l){ 
-                        return(0);
-                }
-        }
-        if (buf[UDP_LEN_H_P]!=0 || buf[UDP_LEN_L_P]!=56 || buf[UDP_SRC_PORT_L_P]!=0x7b){
-                // not ntp
-                return(0);
-        }
-        // copy time from the transmit time stamp field:
-        *time=((uint32_t)buf[0x52]<<24)|((uint32_t)buf[0x53]<<16)|((uint32_t)buf[0x54]<<8)|((uint32_t)buf[0x55]);
-        return(1);
+  if (dstport_l){
+    if (buf[UDP_DST_PORT_L_P]!=dstport_l){ 
+      return(0);
+    }
+  }
+  if (buf[UDP_LEN_H_P]!=0 || buf[UDP_LEN_L_P]!=56 || buf[UDP_SRC_PORT_L_P]!=0x7b){
+    // not ntp
+    return(0);
+  }
+  // copy time from the transmit time stamp field:
+  *time=((uint32_t)buf[0x52]<<24)|((uint32_t)buf[0x53]<<16)|((uint32_t)buf[0x54]<<8)|((uint32_t)buf[0x55]);
+  return(1);
 }
 #endif
 
@@ -810,72 +785,62 @@ uint8_t client_ntp_process_answer(uint8_t *buf,uint32_t *time,uint8_t dstport_l)
 // send_udp sends via gwip, you must call client_set_gwip at startup
 void send_udp_prepare(uint8_t *buf,uint16_t sport, uint8_t *dip, uint16_t dport)
 {
-        uint8_t i=0;
-        while(i<6){
-                buf[ETH_DST_MAC +i]=gwmacaddr[i]; // gw mac in local lan or host mac
-                buf[ETH_SRC_MAC +i]=macaddr[i];
-                i++;
-        }
-        buf[ETH_TYPE_H_P] = ETHTYPE_IP_H_V;
-        buf[ETH_TYPE_L_P] = ETHTYPE_IP_L_V;
-        fill_buf_p(&buf[IP_P],9,iphdr);
-        // total length field in the IP header must be set:
-        buf[IP_TOTLEN_H_P]=0;
-        // done in transmit: buf[IP_TOTLEN_L_P]=IP_HEADER_LEN+UDP_HEADER_LEN+datalen;
-        buf[IP_PROTO_P]=IP_PROTO_UDP_V;
-        i=0;
-        while(i<4){
-                buf[IP_DST_P+i]=dip[i];
-                buf[IP_SRC_P+i]=ipaddr[i];
-                i++;
-        }
-        // done in transmit: fill_ip_hdr_checksum(buf);
-        buf[UDP_DST_PORT_H_P]=(dport>>8);
-        buf[UDP_DST_PORT_L_P]=0xff&dport; 
-        buf[UDP_SRC_PORT_H_P]=(sport>>8);
-        buf[UDP_SRC_PORT_L_P]=sport&0xff; 
-        buf[UDP_LEN_H_P]=0;
-        // done in transmit: buf[UDP_LEN_L_P]=UDP_HEADER_LEN+datalen;
-        // zero the checksum
-        buf[UDP_CHECKSUM_H_P]=0;
-        buf[UDP_CHECKSUM_L_P]=0;
-        // copy the data:
-        // now starting with the first byte at buf[UDP_DATA_P]
+  memcpy(&buf[ETH_DST_MAC], gwmacaddr, 6);
+  memcpy(&buf[ETH_SRC_MAC], macaddr, 6);
+  buf[ETH_TYPE_H_P] = ETHTYPE_IP_H_V;
+  buf[ETH_TYPE_L_P] = ETHTYPE_IP_L_V;
+  fill_buf_p(&buf[IP_P],9,iphdr);
+
+  // total length field in the IP header must be set:
+  buf[IP_TOTLEN_H_P]=0;
+  // done in transmit: buf[IP_TOTLEN_L_P]=IP_HEADER_LEN+UDP_HEADER_LEN+datalen;
+  buf[IP_PROTO_P]=IP_PROTO_UDP_V;
+  memcpy(&buf[IP_DST_P], dip, 4);
+  memcpy(&buf[IP_SRC_P], ipaddr, 4);
+
+  // done in transmit: fill_ip_hdr_checksum(buf);
+  buf[UDP_DST_PORT_H_P]=(dport>>8);
+  buf[UDP_DST_PORT_L_P]=0xff&dport; 
+  buf[UDP_SRC_PORT_H_P]=(sport>>8);
+  buf[UDP_SRC_PORT_L_P]=sport&0xff; 
+  buf[UDP_LEN_H_P]=0;
+  // done in transmit: buf[UDP_LEN_L_P]=UDP_HEADER_LEN+datalen;
+  // zero the checksum
+  buf[UDP_CHECKSUM_H_P]=0;
+  buf[UDP_CHECKSUM_L_P]=0;
+  // copy the data:
+  // now starting with the first byte at buf[UDP_DATA_P]
 }
 
 void send_udp_transmit(uint8_t *buf,uint16_t datalen)
 {
-        uint16_t ck;
-        buf[IP_TOTLEN_H_P]=(IP_HEADER_LEN+UDP_HEADER_LEN+datalen) >> 8;
-        buf[IP_TOTLEN_L_P]=(IP_HEADER_LEN+UDP_HEADER_LEN+datalen) & 0xff;
-        fill_ip_hdr_checksum(buf);
-        //buf[UDP_LEN_L_P]=UDP_HEADER_LEN+datalen;
-        buf[UDP_LEN_H_P]=(UDP_HEADER_LEN+datalen) >>8;
-        buf[UDP_LEN_L_P]=(UDP_HEADER_LEN+datalen) & 0xff;
+  uint16_t ck;
+  buf[IP_TOTLEN_H_P]=(IP_HEADER_LEN+UDP_HEADER_LEN+datalen) >> 8;
+  buf[IP_TOTLEN_L_P]=(IP_HEADER_LEN+UDP_HEADER_LEN+datalen) & 0xff;
+  fill_ip_hdr_checksum(buf);
+  //buf[UDP_LEN_L_P]=UDP_HEADER_LEN+datalen;
+  buf[UDP_LEN_H_P]=(UDP_HEADER_LEN+datalen) >>8;
+  buf[UDP_LEN_L_P]=(UDP_HEADER_LEN+datalen) & 0xff;
 
-        //
-        ck=checksum(&buf[IP_SRC_P], 16 + datalen,1);
-        buf[UDP_CHECKSUM_H_P]=ck>>8;
-        buf[UDP_CHECKSUM_L_P]=ck& 0xff;
-        enc28j60PacketSend(UDP_HEADER_LEN+IP_HEADER_LEN+ETH_HEADER_LEN+datalen,buf);
+  //
+  ck=checksum(&buf[IP_SRC_P], 16 + datalen,1);
+  buf[UDP_CHECKSUM_H_P]=ck>>8;
+  buf[UDP_CHECKSUM_L_P]=ck& 0xff;
+  enc28j60PacketSend(UDP_HEADER_LEN+IP_HEADER_LEN+ETH_HEADER_LEN+datalen,buf);
 }
 
 void send_udp(uint8_t *buf,char *data,uint16_t datalen,uint16_t sport, uint8_t *dip, uint16_t dport)
 {
-        send_udp_prepare(buf,sport, dip, dport);
-        uint8_t i=0;
-        // limit the length: Why??? ADL
-        if (datalen>220){
-                datalen=220;
-        }
-        // copy the data:
-        i=0;
-        while(i<datalen){
-                buf[UDP_DATA_P+i]=data[i];
-                i++;
-        }
-        //
-        send_udp_transmit(buf,datalen);
+  send_udp_prepare(buf,sport, dip, dport);
+  // limit the length: Why??? ADL
+  // NOTE: We dont need such silly limits on powerful STM32s
+  // if (datalen>220){
+  //         datalen=220;
+  // }
+  // copy the data:
+  memcpy(&buf[UDP_DATA_P], data, datalen);
+  //
+  send_udp_transmit(buf,datalen);
 }
 #endif // UDP_client
 
