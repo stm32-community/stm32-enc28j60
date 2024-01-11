@@ -853,8 +853,6 @@ void send_udp(uint8_t *buf,char *data,uint16_t datalen,uint16_t sport, uint8_t *
 //
 void send_wol(uint8_t *buf,uint8_t *wolmac)
 {
-  uint8_t m=0;
-  uint8_t pos=0;
   uint16_t ck;
   //
   memset(&buf[ETH_DST_MAC], 0xff, 6);
@@ -899,40 +897,31 @@ void send_wol(uint8_t *buf,uint8_t *wolmac)
 // make a arp request
 void client_arp_whohas(uint8_t *buf,uint8_t *ip_we_search)
 {
-        uint8_t i=0;
-        //
-        while(i<6){
-                buf[ETH_DST_MAC +i]=0xff;
-                buf[ETH_SRC_MAC +i]=macaddr[i];
-                i++;
-        }
-        buf[ETH_TYPE_H_P] = ETHTYPE_ARP_H_V;
-        buf[ETH_TYPE_L_P] = ETHTYPE_ARP_L_V;
-        fill_buf_p(&buf[ETH_ARP_P],8,arpreqhdr);
-        i=0;
-        while(i<6){
-                buf[ETH_ARP_SRC_MAC_P +i]=macaddr[i];
-                buf[ETH_ARP_DST_MAC_P+i]=0;
-                i++;
-        }
-        i=0;
-        while(i<4){
-                buf[ETH_ARP_DST_IP_P+i]=*(ip_we_search +i);
-                buf[ETH_ARP_SRC_IP_P+i]=ipaddr[i];
-                i++;
-        }
-       	waitgwmac|=WGW_ACCEPT_ARP_REPLY;
+  //
+  memset(&buf[ETH_DST_MAC], 0xFF, 6);
+  memcpy(&buf[ETH_SRC_MAC], macaddr, 6);
+  buf[ETH_TYPE_H_P] = ETHTYPE_ARP_H_V;
+  buf[ETH_TYPE_L_P] = ETHTYPE_ARP_L_V;
+  fill_buf_p(&buf[ETH_ARP_P],8,arpreqhdr);
+  
+  memcpy(&buf[ETH_ARP_SRC_MAC_P], macaddr, 6);
+  memset(&buf[ETH_ARP_DST_MAC_P], 0, 6);
 
-        // 0x2a=42=len of packet
-        enc28j60PacketSend(0x2a,buf);
+  memcpy(&buf[ETH_ARP_DST_IP_P], ip_we_search, 4);
+  memcpy(&buf[ETH_ARP_SRC_MAC_P], ipaddr, 4);
+
+  waitgwmac|=WGW_ACCEPT_ARP_REPLY;
+
+  // 0x2a=42=len of packet
+  enc28j60PacketSend(0x2a,buf);
 }
 
 uint8_t client_waiting_gw(void)
 {
-        if (waitgwmac & WGW_HAVE_GW_MAC){
-                return(0);
-        }
-        return(1);
+  if (waitgwmac & WGW_HAVE_GW_MAC){
+    return(0);
+  }
+  return(1);
 }
 
 
@@ -940,25 +929,18 @@ uint8_t client_waiting_gw(void)
 // no len check here, you must first call eth_type_is_arp_and_my_ip
 uint8_t client_store_gw_mac(uint8_t *buf)
 {
-        uint8_t i=0;
-        while(i<4){
-                if(buf[ETH_ARP_SRC_IP_P+i]!=gwip[i]){
-                        return(0);
-                }
-                i++;
-        }
-        i=0;
-        while(i<6){
-                gwmacaddr[i]=buf[ETH_ARP_SRC_MAC_P +i];
-                i++;
-        }
-        return(1);
+  if (memcmp(&buf[ETH_ARP_SRC_IP_P], gwip, 4)) {
+    return 0;
+  }
+
+  memcpy(gwmacaddr, &buf[ETH_ARP_SRC_MAC_P], 6);
+  return 1;
 }
 
 void client_gw_arp_refresh(void) {
-        if (waitgwmac & WGW_HAVE_GW_MAC){
-                waitgwmac|=WGW_REFRESHING;
-        }
+  if (waitgwmac & WGW_HAVE_GW_MAC){
+    waitgwmac|=WGW_REFRESHING;
+  }
 }
 
 // Used?
@@ -975,92 +957,74 @@ void client_set_wwwip(uint8_t *wwwipaddr)
 
 void client_set_gwip(uint8_t *gwipaddr)
 {
-        uint8_t i=0;
-        waitgwmac=WGW_INITIAL_ARP; // causes an arp request in the packet loop
-        while(i<4){
-                gwip[i]=gwipaddr[i];
-                i++;
-        }
+  waitgwmac=WGW_INITIAL_ARP; // causes an arp request in the packet loop
+  memcpy(gwip, gwipaddr, 4);
 }
 #endif
 
 void client_tcp_set_serverip(uint8_t *ipaddr)
 {
-        uint8_t i=0;
-        while(i<4){
-                tcpsrvip[i]=ipaddr[i];
-                i++;
-        }
+  memcpy(tcpsrvip, ipaddr, 4);
 }
 
 #if defined (TCP_client)
 // Make a tcp syn packet
 void client_syn(uint8_t *buf,uint8_t srcport,uint8_t dstport_h,uint8_t dstport_l)
 {
-        uint16_t ck;
-        uint8_t i=0;
-        // -- make the main part of the eth/IP/tcp header:
-        while(i<6){
-                buf[ETH_DST_MAC +i]=gwmacaddr[i]; // gw mac in local lan or host mac
-                buf[ETH_SRC_MAC +i]=macaddr[i];
-                i++;
-        }
-        buf[ETH_TYPE_H_P] = ETHTYPE_IP_H_V;
-        buf[ETH_TYPE_L_P] = ETHTYPE_IP_L_V;
-        fill_buf_p(&buf[IP_P],9,iphdr);
-        buf[IP_TOTLEN_L_P]=44; // good for syn
-        buf[IP_PROTO_P]=IP_PROTO_TCP_V;
-        i=0;
-        while(i<4){
-                buf[IP_DST_P+i]=tcpsrvip[i];
-                buf[IP_SRC_P+i]=ipaddr[i];
-                i++;
-        }
-        fill_ip_hdr_checksum(buf);
-        buf[TCP_DST_PORT_H_P]=dstport_h;
-        buf[TCP_DST_PORT_L_P]=dstport_l;
-        buf[TCP_SRC_PORT_H_P]=TCPCLIENT_SRC_PORT_H;
-        buf[TCP_SRC_PORT_L_P]=srcport; // lower 8 bit of src port
-        i=0;
-        // zero out sequence number and acknowledgement number
-        while(i<8){
-                buf[TCP_SEQ_H_P+i]=0;
-                i++;
-        }
-        // -- header ready 
-        // put inital seq number
-        // we step only the second byte, this allows us to send packts 
-        // with 255 bytes 512 (if we step the initial seqnum by 2)
-        // or 765 (step by 3)
-        buf[TCP_SEQ_H_P+2]= seqnum; 
-        // step the inititial seq num by something we will not use
-        // during this tcp session:
-        seqnum+=3;
-        buf[TCP_HEADER_LEN_P]=0x60; // 0x60=24 len: (0x60>>4) * 4
-        buf[TCP_FLAGS_P]=TCP_FLAGS_SYN_V;
-        // use a low window size otherwise we have to have
-        // timers and can not just react on every packet.
-        buf[TCP_WIN_SIZE]=0x4; // 1024=0x400, 768 = 0x300, initial window
-        buf[TCP_WIN_SIZE+1]=0x0;
-        // zero the checksum
-        buf[TCP_CHECKSUM_H_P]=0;
-        buf[TCP_CHECKSUM_L_P]=0;
-        // urgent pointer
-        buf[TCP_CHECKSUM_L_P+1]=0;
-        buf[TCP_CHECKSUM_L_P+2]=0;
-        // MSS=768, must be more than 50% of the window size we use
-        // 768 in hex is 0x300
-        buf[TCP_OPTIONS_P]=2;
-        buf[TCP_OPTIONS_P+1]=4;
-        buf[TCP_OPTIONS_P+2]=(CLIENTMSS>>8);
-        buf[TCP_OPTIONS_P+3]=CLIENTMSS & 0xff;
-        ck=checksum(&buf[IP_SRC_P], 8 +TCP_HEADER_LEN_PLAIN+4,2);
-        buf[TCP_CHECKSUM_H_P]=ck>>8;
-        buf[TCP_CHECKSUM_L_P]=ck& 0xff;
-        // 4 is the tcp mss option:
-        enc28j60PacketSend(IP_HEADER_LEN+TCP_HEADER_LEN_PLAIN+ETH_HEADER_LEN+4,buf);
+  uint16_t ck;
+  // -- make the main part of the eth/IP/tcp header:
+  memcpy(&buf[ETH_DST_MAC], gwmacaddr, 6);
+  memcpy(&buf[ETH_SRC_MAC], macaddr, 6);
+  buf[ETH_TYPE_H_P] = ETHTYPE_IP_H_V;
+  buf[ETH_TYPE_L_P] = ETHTYPE_IP_L_V;
+  fill_buf_p(&buf[IP_P],9,iphdr);
+  
+  buf[IP_TOTLEN_L_P]=44; // good for syn
+  buf[IP_PROTO_P]=IP_PROTO_TCP_V;
+  memcpy(&buf[IP_DST_P], tcpsrvip, 4);
+  memcpy(&buf[IP_SRC_P], ipaddr, 4);
+  fill_ip_hdr_checksum(buf);
+
+  buf[TCP_DST_PORT_H_P]=dstport_h;
+  buf[TCP_DST_PORT_L_P]=dstport_l;
+  buf[TCP_SRC_PORT_H_P]=TCPCLIENT_SRC_PORT_H;
+  buf[TCP_SRC_PORT_L_P]=srcport; // lower 8 bit of src port
+  // zero out sequence number and acknowledgement number
+  memset(&buf[TCP_SEQ_H_P], 0, 8);
+  // -- header ready 
+  // put inital seq number
+  // we step only the second byte, this allows us to send packts 
+  // with 255 bytes 512 (if we step the initial seqnum by 2)
+  // or 765 (step by 3)
+  buf[TCP_SEQ_H_P+2]= seqnum; 
+  // step the inititial seq num by something we will not use
+  // during this tcp session:
+  seqnum+=3;
+  buf[TCP_HEADER_LEN_P]=0x60; // 0x60=24 len: (0x60>>4) * 4
+  buf[TCP_FLAGS_P]=TCP_FLAGS_SYN_V;
+  // use a low window size otherwise we have to have
+  // timers and can not just react on every packet.
+  buf[TCP_WIN_SIZE]=0x4; // 1024=0x400, 768 = 0x300, initial window
+  buf[TCP_WIN_SIZE+1]=0x0;
+  // zero the checksum
+  buf[TCP_CHECKSUM_H_P]=0;
+  buf[TCP_CHECKSUM_L_P]=0;
+  // urgent pointer
+  buf[TCP_CHECKSUM_L_P+1]=0;
+  buf[TCP_CHECKSUM_L_P+2]=0;
+  // MSS=768, must be more than 50% of the window size we use
+  // 768 in hex is 0x300
+  buf[TCP_OPTIONS_P]=2;
+  buf[TCP_OPTIONS_P+1]=4;
+  buf[TCP_OPTIONS_P+2]=(CLIENTMSS>>8);
+  buf[TCP_OPTIONS_P+3]=CLIENTMSS & 0xff;
+  ck=checksum(&buf[IP_SRC_P], 8 +TCP_HEADER_LEN_PLAIN+4,2);
+  buf[TCP_CHECKSUM_H_P]=ck>>8;
+  buf[TCP_CHECKSUM_L_P]=ck& 0xff;
+  // 4 is the tcp mss option:
+  enc28j60PacketSend(IP_HEADER_LEN+TCP_HEADER_LEN_PLAIN+ETH_HEADER_LEN+4,buf);
 #ifdef ETHERSHIELD_DEBUG
-        ethershieldDebug( "Sent TCP Syn\n");
+  ethershieldDebug( "Sent TCP Syn\n");
 #endif
 }
 
@@ -1068,95 +1032,85 @@ void client_syn(uint8_t *buf,uint8_t srcport,uint8_t dstport_h,uint8_t dstport_l
 // XXXXXXXXXXX
 uint16_t build_tcp_data(uint8_t *buf, uint16_t srcPort )
 {
-        uint16_t ck;
-        uint8_t i=0;
-        // -- make the main part of the eth/IP/tcp header:
-        while(i<6){
-                buf[ETH_DST_MAC +i]=gwmacaddr[i]; // gw mac in local lan or host mac
-                buf[ETH_SRC_MAC +i]=macaddr[i];
-                i++;
-        }
-        buf[ETH_TYPE_H_P] = ETHTYPE_IP_H_V;
-        buf[ETH_TYPE_L_P] = ETHTYPE_IP_L_V;
-        fill_buf_p(&buf[IP_P],9,iphdr);
-        buf[IP_TOTLEN_L_P]=40; 
-        buf[IP_PROTO_P]=IP_PROTO_TCP_V;
-        i=0;
-        while(i<4){
-                buf[IP_DST_P+i]=tcpsrvip[i];
-                buf[IP_SRC_P+i]=ipaddr[i];
-                i++;
-        }
-        fill_ip_hdr_checksum(buf);
-        buf[TCP_DST_PORT_H_P]=tcp_client_port_h;
-        buf[TCP_DST_PORT_L_P]=tcp_client_port_l;
-        buf[TCP_SRC_PORT_H_P]= (srcPort >> 8);
-        buf[TCP_SRC_PORT_L_P]= srcPort & 0x00ff;
-        i=0;
-        // zero out sequence number and acknowledgement number
-        while(i<8){
-                buf[TCP_SEQ_H_P+i]=0;
-                i++;
-        }
-        // -- header ready 
-        // put inital seq number
-        // we step only the second byte, this allows us to send packts 
-        // with 255 bytes 512 (if we step the initial seqnum by 2)
-        // or 765 (step by 3)
-        buf[TCP_SEQ_H_P+2]= seqnum; 
-        // step the inititial seq num by something we will not use
-        // during this tcp session:
-        seqnum+=3;
-        buf[TCP_HEADER_LEN_P]=0x60; // 0x60=24 len: (0x60>>4) * 4
-        buf[TCP_FLAGS_P]=TCP_FLAGS_PUSH_V;
-        // use a low window size otherwise we have to have
-        // timers and can not just react on every packet.
-        buf[TCP_WIN_SIZE]=0x4; // 1024=0x400, 768 = 0x300, initial window
-        buf[TCP_WIN_SIZE+1]=0x0;
-        // zero the checksum
-        buf[TCP_CHECKSUM_H_P]=0;
-        buf[TCP_CHECKSUM_L_P]=0;
-        // urgent pointer
-        buf[TCP_CHECKSUM_L_P+1]=0;
-        buf[TCP_CHECKSUM_L_P+2]=0;
-        // MSS=768, must be more than 50% of the window size we use
-        // 768 in hex is 0x300
-        buf[TCP_OPTIONS_P]=2;
-        buf[TCP_OPTIONS_P+1]=4;
-        buf[TCP_OPTIONS_P+2]=(CLIENTMSS>>8);
-        buf[TCP_OPTIONS_P+3]=CLIENTMSS & 0xff;
-        ck=checksum(&buf[IP_SRC_P], 8 +TCP_HEADER_LEN_PLAIN+4,2);
-        buf[TCP_CHECKSUM_H_P]=ck>>8;
-        buf[TCP_CHECKSUM_L_P]=ck& 0xff;
-        // 4 is the tcp mss option:
+  uint16_t ck;
+  // -- make the main part of the eth/IP/tcp header:
+  memcpy(&buf[ETH_DST_MAC], gwmacaddr, 6);
+  memcpy(&buf[ETH_SRC_MAC], macaddr, 6);
+  buf[ETH_TYPE_H_P] = ETHTYPE_IP_H_V;
+  buf[ETH_TYPE_L_P] = ETHTYPE_IP_L_V;
+  fill_buf_p(&buf[IP_P],9,iphdr);
+  
+  buf[IP_TOTLEN_L_P]=40; 
+  buf[IP_PROTO_P]=IP_PROTO_TCP_V;
+  memcpy(&buf[IP_DST_P], tcpsrvip, 4);
+  memcpy(&buf[IP_SRC_P], ipaddr, 4);
+  fill_ip_hdr_checksum(buf);
+  
+  buf[TCP_DST_PORT_H_P]=tcp_client_port_h;
+  buf[TCP_DST_PORT_L_P]=tcp_client_port_l;
+  buf[TCP_SRC_PORT_H_P]= (srcPort >> 8);
+  buf[TCP_SRC_PORT_L_P]= srcPort & 0x00ff;
+  // zero out sequence number and acknowledgement number
+  memset(&buf[TCP_SEQ_H_P], 0, 8);
+  // -- header ready 
+  // put inital seq number
+  // we step only the second byte, this allows us to send packts 
+  // with 255 bytes 512 (if we step the initial seqnum by 2)
+  // or 765 (step by 3)
+  buf[TCP_SEQ_H_P+2]= seqnum; 
+  // step the inititial seq num by something we will not use
+  // during this tcp session:
+  seqnum+=3;
+  buf[TCP_HEADER_LEN_P]=0x60; // 0x60=24 len: (0x60>>4) * 4
+  buf[TCP_FLAGS_P]=TCP_FLAGS_PUSH_V;
+  // use a low window size otherwise we have to have
+  // timers and can not just react on every packet.
+  buf[TCP_WIN_SIZE]=0x4; // 1024=0x400, 768 = 0x300, initial window
+  buf[TCP_WIN_SIZE+1]=0x0;
+  // zero the checksum
+  buf[TCP_CHECKSUM_H_P]=0;
+  buf[TCP_CHECKSUM_L_P]=0;
+  // urgent pointer
+  buf[TCP_CHECKSUM_L_P+1]=0;
+  buf[TCP_CHECKSUM_L_P+2]=0;
+  // MSS=768, must be more than 50% of the window size we use
+  // 768 in hex is 0x300
+  buf[TCP_OPTIONS_P]=2;
+  buf[TCP_OPTIONS_P+1]=4;
+  buf[TCP_OPTIONS_P+2]=(CLIENTMSS>>8);
+  buf[TCP_OPTIONS_P+3]=CLIENTMSS & 0xff;
+  ck=checksum(&buf[IP_SRC_P], 8 +TCP_HEADER_LEN_PLAIN+4,2);
+  buf[TCP_CHECKSUM_H_P]=ck>>8;
+  buf[TCP_CHECKSUM_L_P]=ck& 0xff;
+  // 4 is the tcp mss option:
 //        enc28j60PacketSend(IP_HEADER_LEN+TCP_HEADER_LEN_PLAIN+ETH_HEADER_LEN+4,buf);
-        return IP_HEADER_LEN+TCP_HEADER_LEN_PLAIN+ETH_HEADER_LEN+4;
+  return IP_HEADER_LEN+TCP_HEADER_LEN_PLAIN+ETH_HEADER_LEN+4;
 }
 
 // Send the data
 void send_tcp_data(uint8_t *buf,uint16_t dlen)
 {
-        uint16_t j;
-        // fill the header:
-        // This code requires that we send only one data packet
-        // because we keep no state information. We must therefore set
-        // the fin here:
-        buf[TCP_FLAGS_P]=TCP_FLAGS_PUSH_V;
+  uint16_t j;
+  // fill the header:
+  // This code requires that we send only one data packet
+  // because we keep no state information. We must therefore set
+  // the fin here:
+  buf[TCP_FLAGS_P]=TCP_FLAGS_PUSH_V;
 
-        // total length field in the IP header must be set:
-        // 20 bytes IP + 20 bytes tcp (when no options) + len of data
-        j=IP_HEADER_LEN+TCP_HEADER_LEN_PLAIN+dlen;
-        buf[IP_TOTLEN_H_P]=j>>8;
-        buf[IP_TOTLEN_L_P]=j& 0xff;
-        fill_ip_hdr_checksum(buf);
-        // zero the checksum
-        buf[TCP_CHECKSUM_H_P]=0;
-        buf[TCP_CHECKSUM_L_P]=0;
-        // calculate the checksum, len=8 (start from ip.src) + TCP_HEADER_LEN_PLAIN + data len
-        j=checksum(&buf[IP_SRC_P], 8+TCP_HEADER_LEN_PLAIN+dlen,2);
-        buf[TCP_CHECKSUM_H_P]=j>>8;
-        buf[TCP_CHECKSUM_L_P]=j& 0xff;
-        enc28j60PacketSend(IP_HEADER_LEN+TCP_HEADER_LEN_PLAIN+dlen+ETH_HEADER_LEN,buf);
+  // total length field in the IP header must be set:
+  // 20 bytes IP + 20 bytes tcp (when no options) + len of data
+  j=IP_HEADER_LEN+TCP_HEADER_LEN_PLAIN+dlen;
+  buf[IP_TOTLEN_H_P]=j>>8;
+  buf[IP_TOTLEN_L_P]=j& 0xff;
+  fill_ip_hdr_checksum(buf);
+  // zero the checksum
+  buf[TCP_CHECKSUM_H_P]=0;
+  buf[TCP_CHECKSUM_L_P]=0;
+  // calculate the checksum, len=8 (start from ip.src) + TCP_HEADER_LEN_PLAIN + data len
+  j=checksum(&buf[IP_SRC_P], 8+TCP_HEADER_LEN_PLAIN+dlen,2);
+  buf[TCP_CHECKSUM_H_P]=j>>8;
+  buf[TCP_CHECKSUM_L_P]=j& 0xff;
+  enc28j60PacketSend(IP_HEADER_LEN+TCP_HEADER_LEN_PLAIN+dlen+ETH_HEADER_LEN,buf);
 }
 
 
@@ -1203,81 +1157,81 @@ void send_tcp_data(uint8_t *buf,uint16_t dlen)
 //
 uint8_t client_tcp_req(uint8_t (*result_callback)(uint8_t fd,uint8_t statuscode,uint16_t data_start_pos_in_buf, uint16_t len_of_data),uint16_t (*datafill_callback)(uint8_t fd),uint16_t port)
 {
-        client_tcp_result_callback=result_callback;
-        client_tcp_datafill_callback=datafill_callback;
-        tcp_client_port_h=(port>>8) & 0xff;
-        tcp_client_port_l=(port & 0xff);
-        tcp_client_state=1;
-        tcp_fd++;
-        if (tcp_fd>7){
-                tcp_fd=0;
-        }
-        return(tcp_fd);
+  client_tcp_result_callback=result_callback;
+  client_tcp_datafill_callback=datafill_callback;
+  tcp_client_port_h=(port>>8) & 0xff;
+  tcp_client_port_l=(port & 0xff);
+  tcp_client_state=1;
+  tcp_fd++;
+  if (tcp_fd>7){
+          tcp_fd=0;
+  }
+  return(tcp_fd);
 }
 #endif //  TCP_client
 
 #if defined (WWW_client) 
 uint16_t www_client_internal_datafill_callback(uint8_t fd){
-        char strbuf[5];
-        uint16_t len=0;
-        if (fd==www_fd){
-                if (browsertype==0){
-                        // GET
-                        len=fill_tcp_data(bufptr,0,"GET ");
-                        len=fill_tcp_data(bufptr,len,client_urlbuf);
-                        if( client_urlbuf_var )
-                                len=fill_tcp_data(bufptr,len,client_urlbuf_var);
-                        // I would prefer http/1.0 but there is a funny
-                        // bug in some apache webservers which causes
-                        // them to send two packets (fragmented PDU)
-                        // if we don't use HTTP/1.1 + Connection: close
-                        len=fill_tcp_data(bufptr,len," HTTP/1.1\r\nHost: ");
-                        len=fill_tcp_data(bufptr,len,client_hoststr);
-                        len=fill_tcp_data(bufptr,len,"\r\nUser-Agent: " WWW_USER_AGENT "\r\nAccept: text/html\r\nConnection: close\r\n\r\n");
-                }else{
-                        // POST
-                        if( client_method ) {
-                               len=fill_tcp_data(bufptr,0, client_method );
-                               len=fill_tcp_data(bufptr,len, " ");
-                        } else {
-                               len=fill_tcp_data(bufptr,0, "POST ");
-                        }
-                        len=fill_tcp_data(bufptr,len,client_urlbuf);
-                        len=fill_tcp_data(bufptr,len," HTTP/1.1\r\nHost: ");
-                        len=fill_tcp_data(bufptr,len,client_hoststr);
-                        if (client_additionalheaderline){
-                                len=fill_tcp_data(bufptr,len,"\r\n");
-                                len=fill_tcp_data(bufptr,len,client_additionalheaderline);
-                        }
-                        len=fill_tcp_data(bufptr,len,"\r\nUser-Agent: " WWW_USER_AGENT "\r\nAccept: */*\r\nConnection: close\r\n");
-                        len=fill_tcp_data(bufptr,len,"Content-Length: ");
-                        //itoa(strlen(client_postval),strbuf,10);
-                        sprintf(strbuf, "%d", strlen(client_postval));
-                        len=fill_tcp_data(bufptr,len,strbuf);
-                        len=fill_tcp_data(bufptr,len,"\r\nContent-Type: application/x-www-form-urlencoded\r\n\r\n");
-                        len=fill_tcp_data(bufptr,len,client_postval);
-                }
-                return(len);
-        }
-        return(0);
+  char strbuf[5];
+  uint16_t len=0;
+  if (fd==www_fd){
+    if (browsertype==0){
+      // GET
+      len=fill_tcp_data(bufptr,0,"GET ");
+      len=fill_tcp_data(bufptr,len,client_urlbuf);
+      if( client_urlbuf_var )
+              len=fill_tcp_data(bufptr,len,client_urlbuf_var);
+      // I would prefer http/1.0 but there is a funny
+      // bug in some apache webservers which causes
+      // them to send two packets (fragmented PDU)
+      // if we don't use HTTP/1.1 + Connection: close
+      len=fill_tcp_data(bufptr,len," HTTP/1.1\r\nHost: ");
+      len=fill_tcp_data(bufptr,len,client_hoststr);
+      len=fill_tcp_data(bufptr,len,"\r\nUser-Agent: " WWW_USER_AGENT "\r\nAccept: text/html\r\nConnection: close\r\n\r\n");
+    }else{
+      // POST
+      if( client_method ) {
+              len=fill_tcp_data(bufptr,0, client_method );
+              len=fill_tcp_data(bufptr,len, " ");
+      } else {
+              len=fill_tcp_data(bufptr,0, "POST ");
+      }
+      len=fill_tcp_data(bufptr,len,client_urlbuf);
+      len=fill_tcp_data(bufptr,len," HTTP/1.1\r\nHost: ");
+      len=fill_tcp_data(bufptr,len,client_hoststr);
+      if (client_additionalheaderline){
+              len=fill_tcp_data(bufptr,len,"\r\n");
+              len=fill_tcp_data(bufptr,len,client_additionalheaderline);
+      }
+      len=fill_tcp_data(bufptr,len,"\r\nUser-Agent: " WWW_USER_AGENT "\r\nAccept: */*\r\nConnection: close\r\n");
+      len=fill_tcp_data(bufptr,len,"Content-Length: ");
+      //itoa(strlen(client_postval),strbuf,10);
+      sprintf(strbuf, "%d", strlen(client_postval));
+      len=fill_tcp_data(bufptr,len,strbuf);
+      len=fill_tcp_data(bufptr,len,"\r\nContent-Type: application/x-www-form-urlencoded\r\n\r\n");
+      len=fill_tcp_data(bufptr,len,client_postval);
+    }
+    return(len);
+  }
+  return(0);
 }
 
 uint8_t www_client_internal_result_callback(uint8_t fd, uint8_t statuscode, uint16_t datapos, uint16_t len_of_data){
-        if (fd!=www_fd){
-                (*client_browser_callback)(4,0,0);
-                return(0);
-        }
-        if (statuscode==0 && len_of_data>12){
-                // we might have a http status code
-                if (client_browser_callback){
-                        if (strncmp("200",(char *)&(bufptr[datapos+9]),3)==0){
-                                (*client_browser_callback)(0,((uint16_t)TCP_SRC_PORT_H_P+(bufptr[TCP_HEADER_LEN_P]>>4)*4),len_of_data);
-                        }else{
-                                (*client_browser_callback)(1,((uint16_t)TCP_SRC_PORT_H_P+(bufptr[TCP_HEADER_LEN_P]>>4)*4),len_of_data);
-                        }
-                }
-        }
-        return(0);
+  if (fd!=www_fd){
+    (*client_browser_callback)(4,0,0);
+    return(0);
+  }
+  if (statuscode==0 && len_of_data>12){
+    // we might have a http status code
+    if (client_browser_callback){
+      if (strncmp("200",(char *)&(bufptr[datapos+9]),3)==0){
+        (*client_browser_callback)(0,((uint16_t)TCP_SRC_PORT_H_P+(bufptr[TCP_HEADER_LEN_P]>>4)*4),len_of_data);
+      }else{
+        (*client_browser_callback)(1,((uint16_t)TCP_SRC_PORT_H_P+(bufptr[TCP_HEADER_LEN_P]>>4)*4),len_of_data);
+      }
+    }
+  }
+  return(0);
 }
 
 
@@ -1298,12 +1252,12 @@ uint8_t www_client_internal_result_callback(uint8_t fd, uint8_t statuscode, uint
 //
 void client_http_get(char *urlbuf, char *urlbuf_varpart, char *hoststr, void (*callback)(uint8_t,uint16_t,uint16_t))
 {
-        client_urlbuf=urlbuf;
-        client_urlbuf_var=urlbuf_varpart;
-        client_hoststr=hoststr;
-        browsertype=0;
-        client_browser_callback=callback;
-        www_fd=client_tcp_req(&www_client_internal_result_callback,&www_client_internal_datafill_callback,80);
+  client_urlbuf=urlbuf;
+  client_urlbuf_var=urlbuf_varpart;
+  client_hoststr=hoststr;
+  browsertype=0;
+  client_browser_callback=callback;
+  www_fd=client_tcp_req(&www_client_internal_result_callback,&www_client_internal_datafill_callback,80);
 }
 
 // client web browser using http POST operation:
@@ -1314,324 +1268,322 @@ void client_http_get(char *urlbuf, char *urlbuf_varpart, char *hoststr, void (*c
 // postval must be urlencoded.
 void client_http_post(char *urlbuf, char *hoststr, char *additionalheaderline, char *method, char *postval, void (*callback)(uint8_t,uint16_t))
 {
-        client_urlbuf=urlbuf;
-        client_hoststr=hoststr;
-        client_additionalheaderline=additionalheaderline;
-        client_method=method;
-        client_postval=postval;
-        browsertype=1;
-        client_browser_callback=(void (*)(uint8_t,uint16_t,uint16_t))callback;
-        www_fd=client_tcp_req(&www_client_internal_result_callback,&www_client_internal_datafill_callback,80);
+  client_urlbuf=urlbuf;
+  client_hoststr=hoststr;
+  client_additionalheaderline=additionalheaderline;
+  client_method=method;
+  client_postval=postval;
+  browsertype=1;
+  client_browser_callback=(void (*)(uint8_t,uint16_t,uint16_t))callback;
+  www_fd=client_tcp_req(&www_client_internal_result_callback,&www_client_internal_datafill_callback,80);
 }
 #endif // WWW_client
 
 void register_ping_rec_callback(void (*callback)(uint8_t *srcip))
 {
-        icmp_callback=callback;
+  icmp_callback=callback;
 }
 
 #ifdef PING_client
 // loop over this to check if we get a ping reply:
 uint8_t packetloop_icmp_checkreply(uint8_t *buf,uint8_t *ip_monitoredhost)
 {
-        if(buf[IP_PROTO_P]==IP_PROTO_ICMP_V && buf[ICMP_TYPE_P]==ICMP_TYPE_ECHOREPLY_V){
-                if (buf[ICMP_DATA_P]== PINGPATTERN){
-                        if (check_ip_message_is_from(buf,ip_monitoredhost)){
-                                return(1);
-                                // ping reply is from monitored host and ping was from us
-                        }
-                }
-        }
-        return(0);
+  if(buf[IP_PROTO_P]==IP_PROTO_ICMP_V && buf[ICMP_TYPE_P]==ICMP_TYPE_ECHOREPLY_V){
+    if (buf[ICMP_DATA_P]== PINGPATTERN){
+      if (check_ip_message_is_from(buf,ip_monitoredhost)){
+              return(1);
+              // ping reply is from monitored host and ping was from us
+      }
+    }
+  }
+  return(0);
 }
 #endif // PING_client
 
 // return 0 to just continue in the packet loop and return the position 
 // of the tcp/udp data if there is tcp/udp data part
-uint16_t packetloop_icmp_tcp(uint8_t *buf,uint16_t plen)
-{
-        uint16_t len;
-#if defined (TCP_client)
-        uint8_t send_fin=0;
-        uint16_t tcpstart;
-        uint16_t save_len;
-#endif
+uint16_t packetloop_icmp_tcp(uint8_t * buf, uint16_t plen) {
+  uint16_t len;
+  #if defined(TCP_client)
+  uint8_t send_fin = 0;
+  uint16_t tcpstart;
+  uint16_t save_len;
+  #endif
 
-        //plen will be unequal to zero if there is a valid 
-        // packet (without crc error):
-#if defined (NTP_client) ||  defined (UDP_client) || defined (TCP_client) || defined (PING_client)
-        if(plen==0){
-                if ((waitgwmac & WGW_INITIAL_ARP||waitgwmac & WGW_REFRESHING) && delaycnt==0 && enc28j60linkup()){
-                        client_arp_whohas(buf,gwip);
-                }
-                delaycnt++;
-#if defined (TCP_client)
-                if (tcp_client_state==1  && (waitgwmac & WGW_HAVE_GW_MAC)){ // send a syn
-                        tcp_client_state= 2;
-                        tcpclient_src_port_l++; // allocate a new port
-                        // we encode our 3 bit fd into the src port this
-                        // way we get it back in every message that comes
-                        // from the server:
-                        client_syn(buf,((tcp_fd<<5) | (0x1f & tcpclient_src_port_l)),tcp_client_port_h,tcp_client_port_l);
-                }
-#endif
-                return(0);
-        }
-#endif // NTP_client||UDP_client||TCP_client||PING_client
-        // arp is broadcast if unknown but a host may also
-        // verify the mac address by sending it to 
-        // a unicast address.
-        if(eth_type_is_arp_and_my_ip(buf,plen)){
-                if (buf[ETH_ARP_OPCODE_L_P]==ETH_ARP_OPCODE_REQ_L_V){
-                        // is it an arp request 
-                        make_arp_answer_from_request(buf);
-                }
-#if defined (NTP_client) || defined (UDP_client) || defined (TCP_client) || defined (PING_client)
-                if (waitgwmac & WGW_ACCEPT_ARP_REPLY && (buf[ETH_ARP_OPCODE_L_P]==ETH_ARP_OPCODE_REPLY_L_V)){
-                        // is it an arp reply 
-                        if (client_store_gw_mac(buf)){
-                                waitgwmac=WGW_HAVE_GW_MAC;
-                        }
-                }
-#endif // NTP_client||UDP_client||TCP_client||PING_client
-                return(0);
+  //plen will be unequal to zero if there is a valid 
+  // packet (without crc error):
+  #if defined(NTP_client) || defined(UDP_client) || defined(TCP_client) || defined(PING_client)
+  if (plen == 0) {
+    if ((waitgwmac & WGW_INITIAL_ARP || waitgwmac & WGW_REFRESHING) && delaycnt == 0 && enc28j60linkup()) {
+      client_arp_whohas(buf, gwip);
+    }
+    delaycnt++;
+    #if defined(TCP_client)
+    if (tcp_client_state == 1 && (waitgwmac & WGW_HAVE_GW_MAC)) { // send a syn
+      tcp_client_state = 2;
+      tcpclient_src_port_l++; // allocate a new port
+      // we encode our 3 bit fd into the src port this
+      // way we get it back in every message that comes
+      // from the server:
+      client_syn(buf, ((tcp_fd << 5) | (0x1f & tcpclient_src_port_l)), tcp_client_port_h, tcp_client_port_l);
+    }
+    #endif
+    return (0);
+  }
+  #endif // NTP_client||UDP_client||TCP_client||PING_client
+  // arp is broadcast if unknown but a host may also
+  // verify the mac address by sending it to 
+  // a unicast address.
+  if (eth_type_is_arp_and_my_ip(buf, plen)) {
+    if (buf[ETH_ARP_OPCODE_L_P] == ETH_ARP_OPCODE_REQ_L_V) {
+      // is it an arp request 
+      make_arp_answer_from_request(buf);
+    }
+    #if defined(NTP_client) || defined(UDP_client) || defined(TCP_client) || defined(PING_client)
+    if (waitgwmac & WGW_ACCEPT_ARP_REPLY && (buf[ETH_ARP_OPCODE_L_P] == ETH_ARP_OPCODE_REPLY_L_V)) {
+      // is it an arp reply 
+      if (client_store_gw_mac(buf)) {
+        waitgwmac = WGW_HAVE_GW_MAC;
+      }
+    }
+    #endif // NTP_client||UDP_client||TCP_client||PING_client
+    return (0);
 
-        }
-        // check if ip packets are for us:
-        if(eth_type_is_ip_and_my_ip(buf,plen)==0){
-                return(0);
-        }
-#ifdef NTP_client
-        // TODO - does this work?
-        // If NTP response, drop out to have it processed elsewhere
-        if(buf[IP_PROTO_P] == IP_PROTO_UDP_V && buf[UDP_SRC_PORT_H_P]==0 && buf[UDP_SRC_PORT_L_P]==0x7b ) {
-                return( UDP_DATA_P );
-        }
-#endif // NTP_client
-#ifdef DNS_client
-        // TODO - does this work?
-        // If DNS response, drop out to have it processed elsewhere
-        if(buf[IP_PROTO_P] == IP_PROTO_UDP_V && buf[UDP_SRC_PORT_H_P]==0 && buf[UDP_SRC_PORT_L_P]== 53 ) {
-                return( UDP_DATA_P );
-        }
-#endif
+  }
+  // check if ip packets are for us:
+  if (eth_type_is_ip_and_my_ip(buf, plen) == 0) {
+    return (0);
+  }
+  #ifdef NTP_client
+  // TODO - does this work?
+  // If NTP response, drop out to have it processed elsewhere
+  if (buf[IP_PROTO_P] == IP_PROTO_UDP_V && buf[UDP_SRC_PORT_H_P] == 0 && buf[UDP_SRC_PORT_L_P] == 0x7b) {
+    return (UDP_DATA_P);
+  }
+  #endif // NTP_client
+  #ifdef DNS_client
+  // TODO - does this work?
+  // If DNS response, drop out to have it processed elsewhere
+  if (buf[IP_PROTO_P] == IP_PROTO_UDP_V && buf[UDP_SRC_PORT_H_P] == 0 && buf[UDP_SRC_PORT_L_P] == 53) {
+    return (UDP_DATA_P);
+  }
+  #endif
 
-        if(buf[IP_PROTO_P]==IP_PROTO_ICMP_V && buf[ICMP_TYPE_P]==ICMP_TYPE_ECHOREQUEST_V){
-                if (icmp_callback){
-                        (*icmp_callback)(&(buf[IP_SRC_P]));
-                }
-                // a ping packet, let's send pong
-                make_echo_reply_from_request(buf,plen);
-                ES_PingCallback();
-                return(0);
+  if (buf[IP_PROTO_P] == IP_PROTO_ICMP_V && buf[ICMP_TYPE_P] == ICMP_TYPE_ECHOREQUEST_V) {
+    if (icmp_callback) {
+      ( * icmp_callback)( & (buf[IP_SRC_P]));
+    }
+    // a ping packet, let's send pong
+    make_echo_reply_from_request(buf, plen);
+    ES_PingCallback();
+    return (0);
+  }
+  if (plen < 54 && buf[IP_PROTO_P] != IP_PROTO_TCP_V) {
+    // smaller than the smallest TCP packet and not tcp port
+    return (0);
+  }
+  #if defined(TCP_client)
+  // a message for the tcp client, client_state is zero if client was never used
+  if (buf[TCP_DST_PORT_H_P] == TCPCLIENT_SRC_PORT_H) {
+    #if defined(WWW_client)
+    // workaround to pass pointer to www_client_internal..
+    bufptr = buf;
+    #endif // WWW_client
+    if (check_ip_message_is_from(buf, tcpsrvip) == 0) {
+      return (0);
+    }
+    // if we get a reset:
+    if (buf[TCP_FLAGS_P] & TCP_FLAGS_RST_V) {
+      if (client_tcp_result_callback) {
+        #ifdef ETHERSHIELD_DEBUG
+        ethershieldDebug("RST: Calling tcp client callback\n");
+        #endif
+          // parameters in client_tcp_result_callback: fd, status, buf_start, len
+          ( * client_tcp_result_callback)((buf[TCP_DST_PORT_L_P] >> 5) & 0x7, 3, 0, 0);
+      }
+      tcp_client_state = 5;
+      return (0);
+    }
+
+    // Determine what to do with packed depending on state
+
+    len = get_tcp_data_len(buf);
+    if (tcp_client_state == 2) {
+      if ((buf[TCP_FLAGS_P] & TCP_FLAGS_SYN_V) && (buf[TCP_FLAGS_P] & TCP_FLAGS_ACK_V)) {
+        #ifdef ETHERSHIELD_DEBUG
+        ethershieldDebug("Got SYNACK\n");
+        #endif
+        // synack, answer with ack
+        make_tcp_ack_from_any(buf, 0, 0);
+        buf[TCP_FLAGS_P] = TCP_FLAGS_ACK_V | TCP_FLAGS_PUSH_V;
+
+        // Make a tcp message with data. When calling this function we must
+        // still have a valid tcp-ack in the buffer. In other words
+        // you have just called make_tcp_ack_from_any(buf,0).
+        if (client_tcp_datafill_callback) {
+          #ifdef ETHERSHIELD_DEBUG
+          ethershieldDebug("Datafil Callback\n");
+          #endif
+          // in this case it is src port because the above 
+          // make_tcp_ack_from_any swaps the dst and src port:
+          len = ( * client_tcp_datafill_callback)((buf[TCP_SRC_PORT_L_P] >> 5) & 0x7);
+        } else {
+          // this is just to prevent a crash
+          len = 0;
         }
-        if (plen<54 && buf[IP_PROTO_P]!=IP_PROTO_TCP_V ){
-                // smaller than the smallest TCP packet and not tcp port
-                return(0);
+        tcp_client_state = 3;
+        make_tcp_ack_with_data_noflags(buf, len);
+        #ifdef ETHERSHIELD_DEBUG
+        ethershieldDebug("Send ACK\n");
+        #endif
+        return (0);
+      } else {
+        // reset only if we have sent a syn and don't get syn-ack back.
+        // If we connect to a non listen port then we get a RST
+        // which will be handeled above. In other words there is
+        // normally no danger for an endless loop.
+        tcp_client_state = 1; // retry
+        // do not inform application layer as we retry.
+        len++;
+        if (buf[TCP_FLAGS_P] & TCP_FLAGS_ACK_V) {
+          // if packet was an ack then do not step the ack number
+          len = 0;
         }
-#if  defined (TCP_client) 
-        // a message for the tcp client, client_state is zero if client was never used
-        if ( buf[TCP_DST_PORT_H_P]==TCPCLIENT_SRC_PORT_H){
-#if defined (WWW_client)
-                // workaround to pass pointer to www_client_internal..
-                bufptr=buf; 
-#endif // WWW_client
-                if (check_ip_message_is_from(buf,tcpsrvip)==0){
-                        return(0);
-                }
-                // if we get a reset:
-                if (buf[TCP_FLAGS_P] & TCP_FLAGS_RST_V){
-                        if (client_tcp_result_callback){
-#ifdef ETHERSHIELD_DEBUG
-                                ethershieldDebug( "RST: Calling tcp client callback\n");
-#endif
-                                // parameters in client_tcp_result_callback: fd, status, buf_start, len
-                                (*client_tcp_result_callback)((buf[TCP_DST_PORT_L_P]>>5)&0x7,3,0,0);
-                        }
-                        tcp_client_state=5;
-                        return(0);
-                }
-
-
-                // Determine what to do with packed depending on state
- 
-                len=get_tcp_data_len(buf);
-                if (tcp_client_state== 2){
-                        if ((buf[TCP_FLAGS_P] & TCP_FLAGS_SYN_V) && (buf[TCP_FLAGS_P] &TCP_FLAGS_ACK_V)){
-#ifdef ETHERSHIELD_DEBUG
-                                ethershieldDebug( "Got SYNACK\n");
-#endif
-                                // synack, answer with ack
-                                make_tcp_ack_from_any(buf,0,0);
-                                buf[TCP_FLAGS_P]=TCP_FLAGS_ACK_V|TCP_FLAGS_PUSH_V;
-
-                                // Make a tcp message with data. When calling this function we must
-                                // still have a valid tcp-ack in the buffer. In other words
-                                // you have just called make_tcp_ack_from_any(buf,0).
-                                if (client_tcp_datafill_callback){
-#ifdef ETHERSHIELD_DEBUG
-                                        ethershieldDebug( "Datafil Callback\n");
-#endif
-                                        // in this case it is src port because the above 
-                                        // make_tcp_ack_from_any swaps the dst and src port:
-                                        len=(*client_tcp_datafill_callback)((buf[TCP_SRC_PORT_L_P]>>5)&0x7);
-                                }else{
-                                        // this is just to prevent a crash
-                                        len=0;
-                                }
-                                tcp_client_state=3;
-                                make_tcp_ack_with_data_noflags(buf,len);
-#ifdef ETHERSHIELD_DEBUG
-                                ethershieldDebug( "Send ACK\n");
-#endif
-                                return(0);
-                        }else{
-                                // reset only if we have sent a syn and don't get syn-ack back.
-                                // If we connect to a non listen port then we get a RST
-                                // which will be handeled above. In other words there is
-                                // normally no danger for an endless loop.
-                                tcp_client_state=1; // retry
-                                // do not inform application layer as we retry.
-                                len++;
-                                if (buf[TCP_FLAGS_P] & TCP_FLAGS_ACK_V){
-                                        // if packet was an ack then do not step the ack number
-                                        len=0;
-                                }
-                                // refuse and reset the connection
-                                make_tcp_ack_from_any(buf,len,TCP_FLAGS_RST_V);
-                                return(0);
-                        }
-                } 
-                // in tcp_client_state==3 we will normally first get an empty
-                // ack-packet and then a ack-packet with data.
-                if (tcp_client_state==4 ) {     //&& len>0){ 
-                        // our first real data packet
-#ifdef ETHERSHIELD_DEBUG
-//                        ethershieldDebug( "First Data Packet\n");
-#endif
-                        // Removed this as there is no code to handle state 4. Only 1st packet will be available.
-                        //tcp_client_state=4;
-                        // return the data we received
-                        if (client_tcp_result_callback){
-                                tcpstart=TCP_DATA_START; // TCP_DATA_START is a formula
-                                // out of buffer bounds check, needed in case of fragmented IP packets
-                                if (tcpstart>plen-8){
-                                        tcpstart=plen-8; // dummy but save
-                                }
-                                save_len=len;
-                                if (tcpstart+len>plen){
-                                        save_len=plen-tcpstart;
-                                }
-#ifdef ETHERSHIELD_DEBUG
-                                ethershieldDebug( "Calling Result callback\n");
-#endif
-                                send_fin=(*client_tcp_result_callback)((buf[TCP_DST_PORT_L_P]>>5)&0x7,0,tcpstart,save_len);
-
-                        }
-                        if (send_fin){
-#ifdef ETHERSHIELD_DEBUG
-                                ethershieldDebug( "Send FIN\n");
-#endif
-                                make_tcp_ack_from_any(buf,len,TCP_FLAGS_PUSH_V|TCP_FLAGS_FIN_V);
-                                tcp_client_state=5;
-                                return(0);
-                        }
-                        make_tcp_ack_from_any(buf,len,0);
-                        return(0);
-                } 
-                if (tcp_client_state==3) {      // && len>0){ 
-                        // our first real data packet
-#ifdef ETHERSHIELD_DEBUG
-//                        ethershieldDebug( "First Data Packet\n");
-#endif
-                        // Removed this as there is no code to handle state 4. Only 1st packet will be available.
-                        tcp_client_state=4;
-                        // return the data we received
-                        if (client_tcp_result_callback){
-                                tcpstart=TCP_DATA_START; // TCP_DATA_START is a formula
-                                // out of buffer bounds check, needed in case of fragmented IP packets
-                                if (tcpstart>plen-8){
-                                        tcpstart=plen-8; // dummy but save
-                                }
-                                save_len=len;
-                                if (tcpstart+len>plen){
-                                        save_len=plen-tcpstart;
-                                }
-#ifdef ETHERSHIELD_DEBUG
-                                ethershieldDebug( "Calling Result callback\n");
-#endif
-                                send_fin=(*client_tcp_result_callback)((buf[TCP_DST_PORT_L_P]>>5)&0x7,0,tcpstart,save_len);
-
-                        }
-                        if (send_fin){
-#ifdef ETHERSHIELD_DEBUG
-                                ethershieldDebug( "Send FIN\n");
-#endif
-                                make_tcp_ack_from_any(buf,len,TCP_FLAGS_PUSH_V|TCP_FLAGS_FIN_V);
-                                tcp_client_state=5;
-                                return(0);
-                        }
-                        make_tcp_ack_from_any(buf,len,0);
-                        return(0);
-                }
-                if(tcp_client_state==5){
-                        // no more ack
-#ifdef ETHERSHIELD_DEBUG
-                        ethershieldDebug( "No more ACK\n");
-#endif
-                        return(0);
-                }
-                if (buf[TCP_FLAGS_P] & TCP_FLAGS_FIN_V){
-#ifdef ETHERSHIELD_DEBUG
-                        ethershieldDebug( "Terminated\n");
-#endif
-                        make_tcp_ack_from_any(buf,len+1,TCP_FLAGS_PUSH_V|TCP_FLAGS_FIN_V);
-                        tcp_client_state=5; // connection terminated
-                        return(0);
-                }
-                // ack all data (the web page may be long):
-                // if we just get a fragment then len will be zero
-                // and we ack only once we have the full packet
-                if (len>0){
-                        make_tcp_ack_from_any(buf,len,0);
-#ifdef ETHERSHIELD_DEBUG
-                        ethershieldDebug( "Send ACK\n");
-#endif
-                }
-                return(0);
+        // refuse and reset the connection
+        make_tcp_ack_from_any(buf, len, TCP_FLAGS_RST_V);
+        return (0);
+      }
+    }
+    // in tcp_client_state==3 we will normally first get an empty
+    // ack-packet and then a ack-packet with data.
+    if (tcp_client_state == 4) { //&& len>0){ 
+      // our first real data packet
+      #ifdef ETHERSHIELD_DEBUG
+      //                        ethershieldDebug( "First Data Packet\n");
+      #endif
+      // Removed this as there is no code to handle state 4. Only 1st packet will be available.
+      //tcp_client_state=4;
+      // return the data we received
+      if (client_tcp_result_callback) {
+        tcpstart = TCP_DATA_START; // TCP_DATA_START is a formula
+        // out of buffer bounds check, needed in case of fragmented IP packets
+        if (tcpstart > plen - 8) {
+          tcpstart = plen - 8; // dummy but save
         }
-#endif // WWW_client||TCP_client
-        //
-        // tcp port web server start
-        if (buf[TCP_DST_PORT_H_P]==wwwport_h && buf[TCP_DST_PORT_L_P]==wwwport_l){
-                if (buf[TCP_FLAGS_P] & TCP_FLAGS_SYN_V){
-                        make_tcp_synack_from_syn(buf);
-                        // make_tcp_synack_from_syn does already send the syn,ack
-                        return(0);
-                }
-                if (buf[TCP_FLAGS_P] & TCP_FLAGS_ACK_V){
-                        info_data_len=get_tcp_data_len(buf);
-                        // we can possibly have no data, just ack:
-                        // Here we misuse plen for something else to save a variable.
-                        // plen is now the position of start of the tcp user data.
-                        if (info_data_len==0){
-                                if (buf[TCP_FLAGS_P] & TCP_FLAGS_FIN_V){
-                                        // finack, answer with ack
-                                        make_tcp_ack_from_any(buf,0,0);
-                                }
-                                // just an ack with no data, wait for next packet
-                                return(0);
-                        }
-                        // Here we misuse len for something else to save a variable
-                        len=TCP_DATA_START; // TCP_DATA_START is a formula
-                        // check for data corruption
-                        if (len>plen-8){
-                                return(0);
-                        }
-                        return(len);
-                }
+        save_len = len;
+        if (tcpstart + len > plen) {
+          save_len = plen - tcpstart;
         }
-        return(0);
+        #ifdef ETHERSHIELD_DEBUG
+        ethershieldDebug("Calling Result callback\n");
+        #endif
+        send_fin = ( * client_tcp_result_callback)((buf[TCP_DST_PORT_L_P] >> 5) & 0x7, 0, tcpstart, save_len);
+
+      }
+      if (send_fin) {
+        #ifdef ETHERSHIELD_DEBUG
+        ethershieldDebug("Send FIN\n");
+        #endif
+        make_tcp_ack_from_any(buf, len, TCP_FLAGS_PUSH_V | TCP_FLAGS_FIN_V);
+        tcp_client_state = 5;
+        return (0);
+      }
+      make_tcp_ack_from_any(buf, len, 0);
+      return (0);
+    }
+    if (tcp_client_state == 3) { // && len>0){ 
+      // our first real data packet
+      #ifdef ETHERSHIELD_DEBUG
+      //                        ethershieldDebug( "First Data Packet\n");
+      #endif
+      // Removed this as there is no code to handle state 4. Only 1st packet will be available.
+      tcp_client_state = 4;
+      // return the data we received
+      if (client_tcp_result_callback) {
+        tcpstart = TCP_DATA_START; // TCP_DATA_START is a formula
+        // out of buffer bounds check, needed in case of fragmented IP packets
+        if (tcpstart > plen - 8) {
+          tcpstart = plen - 8; // dummy but save
+        }
+        save_len = len;
+        if (tcpstart + len > plen) {
+          save_len = plen - tcpstart;
+        }
+        #ifdef ETHERSHIELD_DEBUG
+        ethershieldDebug("Calling Result callback\n");
+        #endif
+        send_fin = ( * client_tcp_result_callback)((buf[TCP_DST_PORT_L_P] >> 5) & 0x7, 0, tcpstart, save_len);
+
+      }
+      if (send_fin) {
+        #ifdef ETHERSHIELD_DEBUG
+        ethershieldDebug("Send FIN\n");
+        #endif
+        make_tcp_ack_from_any(buf, len, TCP_FLAGS_PUSH_V | TCP_FLAGS_FIN_V);
+        tcp_client_state = 5;
+        return (0);
+      }
+      make_tcp_ack_from_any(buf, len, 0);
+      return (0);
+    }
+    if (tcp_client_state == 5) {
+      // no more ack
+      #ifdef ETHERSHIELD_DEBUG
+      ethershieldDebug("No more ACK\n");
+      #endif
+      return (0);
+    }
+    if (buf[TCP_FLAGS_P] & TCP_FLAGS_FIN_V) {
+      #ifdef ETHERSHIELD_DEBUG
+      ethershieldDebug("Terminated\n");
+      #endif
+      make_tcp_ack_from_any(buf, len + 1, TCP_FLAGS_PUSH_V | TCP_FLAGS_FIN_V);
+      tcp_client_state = 5; // connection terminated
+      return (0);
+    }
+    // ack all data (the web page may be long):
+    // if we just get a fragment then len will be zero
+    // and we ack only once we have the full packet
+    if (len > 0) {
+      make_tcp_ack_from_any(buf, len, 0);
+      #ifdef ETHERSHIELD_DEBUG
+      ethershieldDebug("Send ACK\n");
+      #endif
+    }
+    return (0);
+  }
+  #endif // WWW_client||TCP_client
+  //
+  // tcp port web server start
+  if (buf[TCP_DST_PORT_H_P] == wwwport_h && buf[TCP_DST_PORT_L_P] == wwwport_l) {
+    if (buf[TCP_FLAGS_P] & TCP_FLAGS_SYN_V) {
+      make_tcp_synack_from_syn(buf);
+      // make_tcp_synack_from_syn does already send the syn,ack
+      return (0);
+    }
+    if (buf[TCP_FLAGS_P] & TCP_FLAGS_ACK_V) {
+      info_data_len = get_tcp_data_len(buf);
+      // we can possibly have no data, just ack:
+      // Here we misuse plen for something else to save a variable.
+      // plen is now the position of start of the tcp user data.
+      if (info_data_len == 0) {
+        if (buf[TCP_FLAGS_P] & TCP_FLAGS_FIN_V) {
+          // finack, answer with ack
+          make_tcp_ack_from_any(buf, 0, 0);
+        }
+        // just an ack with no data, wait for next packet
+        return (0);
+      }
+      // Here we misuse len for something else to save a variable
+      len = TCP_DATA_START; // TCP_DATA_START is a formula
+      // check for data corruption
+      if (len > plen - 8) {
+        return (0);
+      }
+      return (len);
+    }
+  }
+  return (0);
 }
 
 #endif
