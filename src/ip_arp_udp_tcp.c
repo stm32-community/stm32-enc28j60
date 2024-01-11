@@ -706,6 +706,9 @@ void client_icmp_request(uint8_t *buf,uint8_t *destip)
 }
 #endif // PING_client
 
+void __attribute__((weak)) ES_PingCallback(void)
+{
+}
 
 #ifdef NTP_client
 // ntp udp packet

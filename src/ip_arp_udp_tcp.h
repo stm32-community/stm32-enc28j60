@@ -18,7 +18,7 @@
 #include "stm32includes.h"
 #include <stdio.h>
 
-void ES_PingCallback(void);
+void __attribute__((weak)) ES_PingCallback(void);
 
 // -- web server functions --
 // you must call this function once before you use any of the other server functions:
