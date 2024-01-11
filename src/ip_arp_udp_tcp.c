@@ -194,74 +194,58 @@ uint8_t check_ip_message_is_from(uint8_t *buf,uint8_t *ip)
 }
 
 uint8_t eth_type_is_arp_and_my_ip(uint8_t *buf,uint16_t len){
-        uint8_t i=0;
-        //  
-        if (len<41){
-                return(0);
-        }
-        if(buf[ETH_TYPE_H_P] != ETHTYPE_ARP_H_V || 
-           buf[ETH_TYPE_L_P] != ETHTYPE_ARP_L_V){
-                return(0);
-        }
-        while(i<4){
-                if(buf[ETH_ARP_DST_IP_P+i] != ipaddr[i]){
-                        return(0);
-                }
-                i++;
-        }
-        return(1);
+  //  
+  if (len<41){
+          return(0);
+  }
+  if(buf[ETH_TYPE_H_P] != ETHTYPE_ARP_H_V || 
+      buf[ETH_TYPE_L_P] != ETHTYPE_ARP_L_V){
+          return(0);
+  }
+  
+  if (memcmp(&buf[ETH_ARP_DST_IP_P], ipaddr, 4)) {
+    return 0;
+  }
+
+  return(1);
 }
 
 uint8_t eth_type_is_ip_and_my_ip(uint8_t *buf,uint16_t len){
-        uint8_t i=0;
-        //eth+ip+udp header is 42
-        if (len<42){
-                return(0);
-        }
-        if(buf[ETH_TYPE_H_P]!=ETHTYPE_IP_H_V || 
-           buf[ETH_TYPE_L_P]!=ETHTYPE_IP_L_V){
-                return(0);
-        }
-        if (buf[IP_HEADER_LEN_VER_P]!=0x45){
-                // must be IP V4 and 20 byte header
-                return(0);
-        }
-        while(i<4){
-                if(buf[IP_DST_P+i]!=ipaddr[i]){
-                        return(0);
-                }
-                i++;
-        }
-        return(1);
+  //eth+ip+udp header is 42
+  if (len<42){
+          return(0);
+  }
+  if(buf[ETH_TYPE_H_P]!=ETHTYPE_IP_H_V || 
+      buf[ETH_TYPE_L_P]!=ETHTYPE_IP_L_V){
+          return(0);
+  }
+  if (buf[IP_HEADER_LEN_VER_P]!=0x45){
+          // must be IP V4 and 20 byte header
+          return(0);
+  }
+  if (memcmp(&buf[IP_DST_P], ipaddr, 4)) {
+    return 0;
+  }
+  return(1);
 }
 
 // make a return eth header from a received eth packet
 void make_eth(uint8_t *buf)
 {
-        uint8_t i=0;
-        //
-        //copy the destination mac from the source and fill my mac into src
-        while(i<6){
-                buf[ETH_DST_MAC +i]=buf[ETH_SRC_MAC +i];
-                buf[ETH_SRC_MAC +i]=macaddr[i];
-                i++;
-        }
+  //copy the destination mac from the source and fill my mac into src
+  memcpy(&buf[ETH_DST_MAC], &buf[ETH_SRC_MAC], 6);
+  memcpy(&buf[ETH_SRC_MAC], macaddr, 6);
 }
 
 // make a new eth header for IP packet
 void make_eth_ip_new(uint8_t *buf, uint8_t* dst_mac)
 {
-        uint8_t i=0;
-        //
-        //copy the destination mac from the source and fill my mac into src
-        while(i<6){
-                buf[ETH_DST_MAC +i]=dst_mac[i];
-                buf[ETH_SRC_MAC +i]=macaddr[i];
-                i++;
-        }
-		
-		buf[ ETH_TYPE_H_P ] = ETHTYPE_IP_H_V;
-		buf[ ETH_TYPE_L_P ] = ETHTYPE_IP_L_V;
+  //copy the destination mac from the source and fill my mac into src
+  memcpy(&buf[ETH_DST_MAC], dst_mac, 6);
+  memcpy(&buf[ETH_SRC_MAC], macaddr, 6);
+
+  buf[ETH_TYPE_H_P] = ETHTYPE_IP_H_V;
+  buf[ETH_TYPE_L_P] = ETHTYPE_IP_L_V;
 }
 
 
