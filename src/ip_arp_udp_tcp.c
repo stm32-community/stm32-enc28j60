@@ -28,16 +28,8 @@
 #undef ETHERSHIELD_DEBUG
 
 #ifdef ETHERSHIELD_DEBUG
-static void serial_write(unsigned char c) {
-    while (!(UCSR0A & (1 << UDRE0))) {}
-    UDR0 = c;
-}
-
 void ethershieldDebug(char *message) {
-    uint8_t i;
-    for (i = 0; message[i] != '\0'; i++) {
-        serial_write(message[i]);
-    }
+    printf("%s\r\n", message);    
 }
 #endif
 
