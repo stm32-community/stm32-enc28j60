@@ -901,7 +901,7 @@ void client_arp_whohas(uint8_t *buf,uint8_t *ip_we_search)
   memset(&buf[ETH_ARP_DST_MAC_P], 0, 6);
 
   memcpy(&buf[ETH_ARP_DST_IP_P], ip_we_search, 4);
-  memcpy(&buf[ETH_ARP_SRC_MAC_P], ipaddr, 4);
+  memcpy(&buf[ETH_ARP_SRC_IP_P], ipaddr, 4);
 
   waitgwmac|=WGW_ACCEPT_ARP_REPLY;
 
