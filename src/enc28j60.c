@@ -327,12 +327,12 @@ void enc28j60Init( uint8_t* macaddr )
 	// do bank 3 stuff
         // write MAC address
         // NOTE: MAC address in ENC28J60 is byte-backward
-        enc28j60Write(MAADR5, macaddr[0]);
-        enc28j60Write(MAADR4, macaddr[1]);
-        enc28j60Write(MAADR3, macaddr[2]);
-        enc28j60Write(MAADR2, macaddr[3]);
-        enc28j60Write(MAADR1, macaddr[4]);
-        enc28j60Write(MAADR0, macaddr[5]);
+  enc28j60Write(MAADR5, macaddr[0]);
+  enc28j60Write(MAADR4, macaddr[1]);
+  enc28j60Write(MAADR3, macaddr[2]);
+  enc28j60Write(MAADR2, macaddr[3]);
+  enc28j60Write(MAADR1, macaddr[4]);
+  enc28j60Write(MAADR0, macaddr[5]);
 	// no loopback of transmitted frames
 	enc28j60PhyWrite(PHCON2, PHCON2_HDLDIS);
 	// switch to bank 0
@@ -346,13 +346,13 @@ void enc28j60Init( uint8_t* macaddr )
 // read the revision of the chip:
 uint8_t enc28j60getrev(void)
 {
-        uint8_t rev;
-        rev=enc28j60Read(EREVID);
-        // microchip forgot to step the number on the silcon when they
-        // released the revision B7. 6 is now rev B7. We still have
-        // to see what they do when they release B8. At the moment
-        // there is no B8 out yet
-        if (rev>5) rev++;
+  uint8_t rev;
+  rev=enc28j60Read(EREVID);
+  // microchip forgot to step the number on the silcon when they
+  // released the revision B7. 6 is now rev B7. We still have
+  // to see what they do when they release B8. At the moment
+  // there is no B8 out yet
+  if (rev>5) rev++;
 	return(rev);
 }
 
@@ -388,14 +388,14 @@ uint8_t enc28j60linkup(void)
 void enc28j60PacketSend(uint16_t len, uint8_t* packet)
 {
         // Check no transmit in progress
-        while (enc28j60ReadOp(ENC28J60_READ_CTRL_REG, ECON1) & ECON1_TXRTS)
-        {
-                // Reset the transmit logic problem. See Rev. B4 Silicon Errata point 12.
-                if( (enc28j60Read(EIR) & EIR_TXERIF) ) {
-                        enc28j60WriteOp(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_TXRST);
-                        enc28j60WriteOp(ENC28J60_BIT_FIELD_CLR, ECON1, ECON1_TXRST);
-                }
-        }
+  while (enc28j60ReadOp(ENC28J60_READ_CTRL_REG, ECON1) & ECON1_TXRTS)
+  {
+    // Reset the transmit logic problem. See Rev. B4 Silicon Errata point 12.
+    if( (enc28j60Read(EIR) & EIR_TXERIF) ) {
+      enc28j60WriteOp(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_TXRST);
+      enc28j60WriteOp(ENC28J60_BIT_FIELD_CLR, ECON1, ECON1_TXRST);
+    }
+  }
 
 	// Set the write pointer to start of transmit buffer area
 	enc28j60WriteWord(EWRPTL, TXSTART_INIT);
@@ -423,14 +423,14 @@ void enc28j60PacketSend(uint16_t len, uint8_t* packet)
 // Returns: Packet length in bytes if a packet was retrieved, zero otherwise.
 uint16_t enc28j60PacketReceive(uint16_t maxlen, uint8_t* packet)
 {
-        	uint16_t rxstat;
+  uint16_t rxstat;
 	uint16_t len;
 	// check if a packet has been received and buffered
 	//if( !(enc28j60Read(EIR) & EIR_PKTIF) ){
         // The above does not work. See Rev. B4 Silicon Errata point 6.
 	if( enc28j60Read(EPKTCNT) ==0 ){
 		return(0);
-        }
+  }
 
 	// Set the read pointer to the start of the received packet
 	enc28j60WriteWord(ERDPTL, gNextPacketPtr);
@@ -450,35 +450,35 @@ uint16_t enc28j60PacketReceive(uint16_t maxlen, uint8_t* packet)
 	//rxstat  = enc28j60ReadOp(ENC28J60_READ_BUF_MEM, 0);
 	//rxstat |= ((uint16_t)enc28j60ReadOp(ENC28J60_READ_BUF_MEM, 0))<<8;
 	// limit retrieve length
-        if (len>maxlen-1){
-                len=maxlen-1;
-        }
-        // check CRC and symbol errors (see datasheet page 44, table 7-3):
-        // The ERXFCON.CRCEN is set by default. Normally we should not
-        // need to check this.
-        if ((rxstat & 0x80)==0){
-                // invalid
-                len=0;
-        }else{
-                // copy the packet from the receive buffer
-                enc28j60ReadBuffer(len, packet);
-        }
+  if (len>maxlen-1){
+    len=maxlen-1;
+  }
+  // check CRC and symbol errors (see datasheet page 44, table 7-3):
+  // The ERXFCON.CRCEN is set by default. Normally we should not
+  // need to check this.
+  if ((rxstat & 0x80)==0){
+    // invalid
+    len=0;
+  }else{
+    // copy the packet from the receive buffer
+    enc28j60ReadBuffer(len, packet);
+  }
 	// Move the RX read pointer to the start of the next received packet
 	// This frees the memory we just read out
 	enc28j60WriteWord(ERXRDPTL, gNextPacketPtr );
 	//enc28j60Write(ERXRDPTL, (gNextPacketPtr &0xFF));
 	//enc28j60Write(ERXRDPTH, (gNextPacketPtr)>>8);
-        // However, compensate for the errata point 13, rev B4: enver write an even address!
-        if ((gNextPacketPtr - 1 < RXSTART_INIT)
-                || (gNextPacketPtr -1 > RXSTOP_INIT)) {
-                enc28j60WriteWord(ERXRDPTL, RXSTOP_INIT);
-                //enc28j60Write(ERXRDPTL, (RXSTOP_INIT)&0xFF);
-                //enc28j60Write(ERXRDPTH, (RXSTOP_INIT)>>8);
-        } else {
-                enc28j60WriteWord(ERXRDPTL, (gNextPacketPtr-1));
-                //enc28j60Write(ERXRDPTL, (gNextPacketPtr-1)&0xFF);
-                //enc28j60Write(ERXRDPTH, (gNextPacketPtr-1)>>8);
-        }
+  // However, compensate for the errata point 13, rev B4: enver write an even address!
+  if ((gNextPacketPtr - 1 < RXSTART_INIT)
+          || (gNextPacketPtr -1 > RXSTOP_INIT)) {
+    enc28j60WriteWord(ERXRDPTL, RXSTOP_INIT);
+    //enc28j60Write(ERXRDPTL, (RXSTOP_INIT)&0xFF);
+    //enc28j60Write(ERXRDPTH, (RXSTOP_INIT)>>8);
+  } else {
+    enc28j60WriteWord(ERXRDPTL, (gNextPacketPtr-1));
+    //enc28j60Write(ERXRDPTL, (gNextPacketPtr-1)&0xFF);
+    //enc28j60Write(ERXRDPTH, (gNextPacketPtr-1)>>8);
+  }
 	// decrement the packet counter indicate we are done with this packet
 	enc28j60WriteOp(ENC28J60_BIT_FIELD_SET, ECON2, ECON2_PKTDEC);
 	return(len);
