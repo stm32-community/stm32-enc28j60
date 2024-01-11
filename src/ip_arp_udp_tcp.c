@@ -132,78 +132,65 @@ const char ntpreqhdr[] ={0xe3,0,4,0xfa,0,1,0,1,0,0};
 // http://www.netfor2.com/checksum.html
 // http://www.msc.uky.edu/ken/cs471/notes/chap3.htm
 // The RFC has also a C code example: http://www.faqs.org/rfcs/rfc1071.html
-uint16_t checksum(uint8_t *buf, uint16_t len,uint8_t type){
-        // type 0=ip , icmp
-        //      1=udp
-        //      2=tcp
-        uint32_t sum = 0;
+uint16_t checksum(uint8_t *buf, uint16_t len,uint8_t type)
+{
+  // type 0=ip , icmp
+  //      1=udp
+  //      2=tcp
+  uint32_t sum = 0;
 
-        //if(type==0){    
-        //        // do not add anything, standard IP checksum as described above
-        //        // Usable for ICMP and IP header
-        //}
-        if(type==1){
-                sum+=IP_PROTO_UDP_V; // protocol udp
-                // the length here is the length of udp (data+header len)
-                // =length given to this function - (IP.scr+IP.dst length)
-                sum+=len-8; // = real udp len
-        }
-        if(type==2){
-                sum+=IP_PROTO_TCP_V; 
-                // the length here is the length of tcp (data+header len)
-                // =length given to this function - (IP.scr+IP.dst length)
-                sum+=len-8; // = real tcp len
-        }
-        // build the sum of 16bit words
-        while(len >1){
-                sum += 0xFFFF & (((uint32_t)*buf<<8)|*(buf+1));
-                buf+=2;
-                len-=2;
-        }
-        // if there is a byte left then add it (padded with zero)
-        if (len){
-                sum += ((uint32_t)(0xFF & *buf))<<8;
-        }
-        // now calculate the sum over the bytes in the sum
-        // until the result is only 16bit long
-        while (sum>>16){
-                sum = (sum & 0xFFFF)+(sum >> 16);
-        }
-        // build 1's complement:
-        return( (uint16_t) sum ^ 0xFFFF);
+  //if(type==0){    
+  //        // do not add anything, standard IP checksum as described above
+  //        // Usable for ICMP and IP header
+  //}
+  if(type==1){
+          sum+=IP_PROTO_UDP_V; // protocol udp
+          // the length here is the length of udp (data+header len)
+          // =length given to this function - (IP.scr+IP.dst length)
+          sum+=len-8; // = real udp len
+  }
+  if(type==2){
+          sum+=IP_PROTO_TCP_V; 
+          // the length here is the length of tcp (data+header len)
+          // =length given to this function - (IP.scr+IP.dst length)
+          sum+=len-8; // = real tcp len
+  }
+  // build the sum of 16bit words
+  while(len >1){
+          sum += 0xFFFF & (((uint32_t)*buf<<8)|*(buf+1));
+          buf+=2;
+          len-=2;
+  }
+  // if there is a byte left then add it (padded with zero)
+  if (len){
+          sum += ((uint32_t)(0xFF & *buf))<<8;
+  }
+  // now calculate the sum over the bytes in the sum
+  // until the result is only 16bit long
+  while (sum>>16){
+          sum = (sum & 0xFFFF)+(sum >> 16);
+  }
+  // build 1's complement:
+  return( (uint16_t) sum ^ 0xFFFF);
 }
 
 #endif
 
 // This initializes the web server
 // you must call this function once before you use any of the other functions:
-void init_ip_arp_udp_tcp(uint8_t *mymac,uint8_t *myip,uint16_t port){
-        uint8_t i=0;
-        wwwport_h=(port>>8)&0xff;
-        wwwport_l=(port&0xff);
-        while(i<4){
-                ipaddr[i]=myip[i];
-                i++;
-        }
-        i=0;
-        while(i<6){
-                macaddr[i]=mymac[i];
-                i++;
-        }
+void init_ip_arp_udp_tcp(uint8_t *mymac,uint8_t *myip,uint16_t port)
+{
+  wwwport_h=(port>>8)&0xff;
+  wwwport_l=(port&0xff);
+  memcpy(ipaddr, myip, 4);
+  memcpy(macaddr, mymac, 6);
 }
 
 #ifndef DISABLE_IP_STACK
 
 uint8_t check_ip_message_is_from(uint8_t *buf,uint8_t *ip)
 {
-        uint8_t i=0;
-        while(i<4){
-                if(buf[IP_SRC_P+i]!=ip[i]){
-                        return(0);
-                }
-                i++;
-        }
-        return(1);
+  return !memcmp(&buf[IP_SRC_P], ip, 4);
 }
 
 uint8_t eth_type_is_arp_and_my_ip(uint8_t *buf,uint16_t len){
