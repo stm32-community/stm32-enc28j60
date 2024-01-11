@@ -36,6 +36,7 @@ set(ETHERNET_CS_DELAY       "2"             CACHE INTERNAL "chip-select delay fo
 set(UDP_client              "1"                     CACHE INTERNAL "enables UDP transport protocol")
 set(DNS_client              "1"                     CACHE INTERNAL "enables DNS client")
 set(DHCP_client             "1"                     CACHE INTERNAL "enables DHCP client")
+set(DHCP_HOSTNAME           "stm32-enc28j60"        CACHE INTERNAL "DHCP host name")
 set(PING_client             "1"                     CACHE INTERNAL "enables ICMP ping client")
 set(PINGPATTERN             0x42                    CACHE INTERNAL "ping pattern value")
 set(TCP_client              "1"                     CACHE INTERNAL "enables TCP transport protocol")
@@ -43,6 +44,11 @@ set(WWW_client              "1"                     CACHE INTERNAL "enables HTTP
 set(WWW_USER_AGENT          "stm32-enc28j60/1.0"    CACHE INTERNAL "HTTP User-Agent")
 set(FROMDECODE_websrv_help  "1"                     CACHE INTERNAL "")
 set(URLENCODE_websrv_help   "1"                     CACHE INTERNAL "")
+
+string(LENGTH ${DHCP_HOSTNAME} DHCP_HOSTNAME_LEN)
+if(DHCP_HOSTNAME_LEN GREATER 32)
+  message(SEND_ERROR "DHCP_HOSTNAME length > 32 limit")
+endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 
@@ -67,6 +73,8 @@ target_compile_definitions(stm32-enc28j60 PUBLIC
     UDP_client=${UDP_client}
     DNS_client=${DNS_client}
     DHCP_client=${DHCP_client}
+    DHCP_HOSTNAME="${DHCP_HOSTNAME}"
+    DHCP_HOSTNAME_LEN=${DHCP_HOSTNAME_LEN}
     PING_client=${PING_client}
     PINGPATTERN=${PINGPATTERN}
     TCP_client=${TCP_client}

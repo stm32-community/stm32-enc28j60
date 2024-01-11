@@ -77,7 +77,11 @@ uint8_t *dhcpserver;
 uint8_t *dnsserver;
 uint8_t *gwaddr;
 
-static char hostname[] = "Arduino-00";
+// For DHCP hostnames we don't need any zero-terminators
+#define HOSTNAME_LEN DHCP_HOSTNAME_LEN
+#define HOSTNAME_SIZE HOSTNAME_LEN+3
+
+static char hostname[HOSTNAME_SIZE];
 static uint8_t haveDhcpAnswer=0;
 static uint8_t dhcp_ansError=0;
 uint32_t currentXid = 0;
@@ -129,9 +133,17 @@ void dhcp_start(uint8_t *buf, uint8_t *macaddrin, uint8_t *ipaddrin,
           dhcpserver[n] = 0;
           dnsserver[n] = 0;
         }
-        // Set a unique hostname, use Arduino- plus last octet of mac address
-        hostname[8] = 'A' + (macaddr[5] >> 4);
-        hostname[9] = 'A' + (macaddr[5] & 0x0F);
+        // Set a unique hostname, use DHCP_HOSTNAME- plus last octet of mac address
+        //hostname[8] = 'A' + (macaddr[5] >> 4);
+        //hostname[9] = 'A' + (macaddr[5] & 0x0F);
+        for (int i = 0; i < HOSTNAME_LEN; i++) {
+          hostname[i] = DHCP_HOSTNAME[i];
+        }
+
+        hostname[HOSTNAME_LEN] = '-';
+        hostname[HOSTNAME_LEN+1] = 'A' + (macaddr[5] >> 4);
+        hostname[HOSTNAME_LEN+2] = 'A' + (macaddr[5] & 0x0F);
+        hostname[HOSTNAME_LEN+3] = '\0';
 
         // Reception of broadcast packets turned off by default, but
         // it has been shown that some routers send responses as
@@ -208,8 +220,8 @@ void dhcp_send(uint8_t *buf, uint8_t requestType ) {
 
         // Host name Option
         addToBuf(12);     // Host name
-        addToBuf(10);      // Length 
-        for( i=0; i<10; i++)
+        addToBuf(HOSTNAME_SIZE);      // Length 
+        for( i=0; i<HOSTNAME_SIZE; i++)
                 addToBuf(hostname[i]);
 
         if( requestType == DHCPREQUEST ) {
