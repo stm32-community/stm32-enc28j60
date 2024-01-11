@@ -33,6 +33,8 @@ set(ETHERNET_CS_GPIO        "GPIOA"         CACHE INTERNAL "GPIO for SPI chip se
 set(ETHERNET_CS_PIN         "GPIO_PIN_3"    CACHE INTERNAL "PIN for SPI chip select")
 set(ETHERNET_CS_DELAY       "2"             CACHE INTERNAL "chip-select delay for ehternet")
 
+set(ETHERSHIELD_DEBUG       "1"             CACHE INTERNAL "enables debugging")
+
 set(UDP_client              "1"                     CACHE INTERNAL "enables UDP transport protocol")
 set(NTP_client              "1"                     CACHE INTERNAL "enables NTP client")
 set(WOL_client              "1"                     CACHE INTERNAL "enables WOL client")
@@ -71,6 +73,8 @@ target_compile_definitions(stm32-enc28j60 PUBLIC
     ETHERNET_CS_GPIO=${ETHERNET_CS_GPIO}
     ETHERNET_CS_PIN=${ETHERNET_CS_PIN}
     ETHERNET_CS_DELAY=${ETHERNET_CS_DELAY}
+
+    ETHERSHIELD_DEBUG=${ETHERSHIELD_DEBUG}
 
     UDP_client=${UDP_client}
     NTP_client=${NTP_client}
