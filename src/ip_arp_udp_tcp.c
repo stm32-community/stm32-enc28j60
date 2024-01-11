@@ -853,59 +853,45 @@ void send_udp(uint8_t *buf,char *data,uint16_t datalen,uint16_t sport, uint8_t *
 //
 void send_wol(uint8_t *buf,uint8_t *wolmac)
 {
-        uint8_t i=0;
-        uint8_t m=0;
-        uint8_t pos=0;
-        uint16_t ck;
-        //
-        while(i<6){
-                buf[ETH_DST_MAC +i]=0xff;
-                buf[ETH_SRC_MAC +i]=macaddr[i];
-                i++;
-        }
-        buf[ETH_TYPE_H_P] = ETHTYPE_IP_H_V;
-        buf[ETH_TYPE_L_P] = ETHTYPE_IP_L_V;
-        fill_buf_p(&buf[IP_P],9,iphdr);
-        buf[IP_TOTLEN_L_P]=0x82;
-        buf[IP_PROTO_P]=IP_PROTO_UDP_V;
-        i=0;
-        while(i<4){
-                buf[IP_SRC_P+i]=ipaddr[i];
-                buf[IP_DST_P+i]=0xff;
-                i++;
-        }
-        fill_ip_hdr_checksum(buf);
-        buf[UDP_DST_PORT_H_P]=0;
-        buf[UDP_DST_PORT_L_P]=0x9; // wol=normally 9
-        buf[UDP_SRC_PORT_H_P]=10;
-        buf[UDP_SRC_PORT_L_P]=0x42; // source port does not matter
-        buf[UDP_LEN_H_P]=0;
-        buf[UDP_LEN_L_P]=110; // fixed len
-        // zero the checksum
-        buf[UDP_CHECKSUM_H_P]=0;
-        buf[UDP_CHECKSUM_L_P]=0;
-        // copy the data (102 bytes):
-        i=0;
-        while(i<6){ 
-                buf[UDP_DATA_P+i]=0xff;
-                i++;
-        }
-        m=0;
-        pos=UDP_DATA_P+i;
-        while (m<16){
-                i=0;
-                while(i<6){ 
-                        buf[pos]=wolmac[i];
-                        i++;
-                        pos++;
-                }
-                m++;
-        }
-        ck=checksum(&buf[IP_SRC_P], 118,1);
-        buf[UDP_CHECKSUM_H_P]=ck>>8;
-        buf[UDP_CHECKSUM_L_P]=ck& 0xff;
+  uint8_t m=0;
+  uint8_t pos=0;
+  uint16_t ck;
+  //
+  memset(&buf[ETH_DST_MAC], 0xff, 6);
+  memcpy(&buf[ETH_SRC_MAC], macaddr, 6);
+  buf[ETH_TYPE_H_P] = ETHTYPE_IP_H_V;
+  buf[ETH_TYPE_L_P] = ETHTYPE_IP_L_V;
+  fill_buf_p(&buf[IP_P],9,iphdr);
+  
+  buf[IP_TOTLEN_L_P]=0x82;
+  buf[IP_PROTO_P]=IP_PROTO_UDP_V;
+  memcpy(&buf[IP_SRC_P], ipaddr, 4);
+  memset(&buf[IP_DST_P], 0xff, 4);
+  fill_ip_hdr_checksum(buf);
+  buf[UDP_DST_PORT_H_P]=0;
+  buf[UDP_DST_PORT_L_P]=0x9; // wol=normally 9
+  buf[UDP_SRC_PORT_H_P]=10;
+  buf[UDP_SRC_PORT_L_P]=0x42; // source port does not matter
+  buf[UDP_LEN_H_P]=0;
+  buf[UDP_LEN_L_P]=110; // fixed len
+  // zero the checksum
+  buf[UDP_CHECKSUM_H_P]=0;
+  buf[UDP_CHECKSUM_L_P]=0;
+  // copy the data (102 bytes):
+  
+  // first mac - 0xFFs
+  memset(&buf[UDP_DATA_P], 0xff, 6);
+  // next 16 macs - wolmac repeated
+  // TODO: may need testing
+  for (unsigned i = 1; i <= 16; i++) {
+    memcpy(&buf[UDP_DATA_P + i*6], wolmac, 6);
+  }
 
-        enc28j60PacketSend(UDP_HEADER_LEN+IP_HEADER_LEN+ETH_HEADER_LEN+102,buf);
+  ck=checksum(&buf[IP_SRC_P], 118,1);
+  buf[UDP_CHECKSUM_H_P]=ck>>8;
+  buf[UDP_CHECKSUM_L_P]=ck& 0xff;
+
+  enc28j60PacketSend(UDP_HEADER_LEN+IP_HEADER_LEN+ETH_HEADER_LEN+102,buf);
 }
 #endif // WOL_client
 
