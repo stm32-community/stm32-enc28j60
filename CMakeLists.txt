@@ -35,6 +35,7 @@ set(ETHERNET_CS_DELAY       "2"             CACHE INTERNAL "chip-select delay fo
 
 set(UDP_client              "1"                     CACHE INTERNAL "enables UDP transport protocol")
 set(NTP_client              "1"                     CACHE INTERNAL "enables NTP client")
+set(WOL_client              "1"                     CACHE INTERNAL "enables WOL client")
 set(DNS_client              "1"                     CACHE INTERNAL "enables DNS client")
 set(DHCP_client             "1"                     CACHE INTERNAL "enables DHCP client")
 set(DHCP_HOSTNAME           "stm32-enc28j60"        CACHE INTERNAL "DHCP host name")
@@ -73,6 +74,7 @@ target_compile_definitions(stm32-enc28j60 PUBLIC
 
     UDP_client=${UDP_client}
     NTP_client=${NTP_client}
+    WOL_client=${WOL_client}
     DNS_client=${DNS_client}
     DHCP_client=${DHCP_client}
     DHCP_HOSTNAME="${DHCP_HOSTNAME}"
