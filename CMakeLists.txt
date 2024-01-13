@@ -15,16 +15,16 @@ set(SOURCES
 )
 
 set(HEADERS
-    src/stm32f4xx_hal_conf.h
-    src/defines.h
-    src/enc28j60.h
-    src/ip_arp_udp_tcp.h
-    src/net.h
-    src/dhcp.h
-    src/dnslkup.h
-    src/websrv_help_functions.h
-    src/EtherShield.h
-    src/error_handler.h
+    inc/stm32f4xx_hal_conf.h
+    inc/defines.h
+    inc/enc28j60.h
+    inc/ip_arp_udp_tcp.h
+    inc/net.h
+    inc/dhcp.h
+    inc/dnslkup.h
+    inc/websrv_help_functions.h
+    inc/EtherShield.h
+    inc/error_handler.h
 )
 
 set(ETHERNET_LED_GPIO       "GPIOA"         CACHE INTERNAL "GPIO for ethernet LED")
@@ -66,7 +66,7 @@ if(NOT STM32_CMAKE_PACKAGES)
 endif()
 
 add_library(stm32-enc28j60 ${SOURCES} ${HEADERS})
-target_include_directories(stm32-enc28j60 PUBLIC src)
+target_include_directories(stm32-enc28j60 PUBLIC inc)
 target_compile_definitions(stm32-enc28j60 PUBLIC
     ETHERNET_LED_GPIO=${ETHERNET_LED_GPIO}
     ETHERNET_LED_PIN=${ETHERNET_LED_PIN}
