@@ -31,7 +31,7 @@ set(ETHERNET_LED_GPIO       "GPIOA"         CACHE INTERNAL "GPIO for ethernet LE
 set(ETHERNET_LED_PIN        "GPIO_PIN_2"    CACHE INTERNAL "PIN for ethernet LED")
 set(ETHERNET_CS_GPIO        "GPIOA"         CACHE INTERNAL "GPIO for SPI chip select")
 set(ETHERNET_CS_PIN         "GPIO_PIN_3"    CACHE INTERNAL "PIN for SPI chip select")
-set(ETHERNET_CS_DELAY       "2"             CACHE INTERNAL "chip-select delay for ehternet")
+set(ETHERNET_CS_DELAY       "1"             CACHE INTERNAL "chip-select delay for ehternet")
 
 set(ETHERSHIELD_DEBUG       "1"             CACHE INTERNAL "enables debugging")
 
