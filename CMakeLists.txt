@@ -23,9 +23,6 @@ set(HEADERS
     inc/error_handler.h
 )
 
-# change to your MCU family and model!
-set(MCU_FAMILY              "F4"            CACHE INTERNAL "STM32 MCU family")
-set(MCU_MODEL               "F401VE"        CACHE INTERNAL "STM32 MCU model")
 
 set(ETHERNET_LED_GPIO       "GPIOA"         CACHE INTERNAL "GPIO for ethernet LED")
 set(ETHERNET_LED_PIN        "GPIO_PIN_2"    CACHE INTERNAL "PIN for ethernet LED")
@@ -59,8 +56,14 @@ set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 ## STM32_TOOLCHAIN_PATH, STM32_TARGET_TRIPLET, STM32_CUBE_F4_PATH must be present in environment variables
 ## check https://github.com/DVALight/stm32-cmake for more info
 
-list(APPEND HAL_COMP_LIST STM32F4 CORTEX RCC GPIO SPI)
-list(APPEND CMSIS_COMP_LIST "STM32" ${MCU_FAMILY})
+# change to your MCU family and model!
+if(NOT MCU_FAMILY)
+    set(MCU_FAMILY              "F4"            CACHE INTERNAL "STM32 MCU family")
+    set(MCU_MODEL               "F401VE"        CACHE INTERNAL "STM32 MCU model")
+endif()
+
+list(APPEND HAL_COMP_LIST "STM32${MCU_FAMILY}" CORTEX RCC GPIO SPI)
+list(APPEND CMSIS_COMP_LIST "STM32${MCU_FAMILY}")
 
 if(NOT STM32_CMAKE_PACKAGES)
     find_package(CMSIS COMPONENTS "${CMSIS_COMP_LIST}" REQUIRED)
