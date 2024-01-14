@@ -10,7 +10,7 @@ If you need to use another STM32 MCU then don't forget to edit file [`src/stm32i
 
 ## How to use it
 
-* This library can be used in two ways. Either just copy it into your project and set up your project to be built with this library. This is how I used it.
+* This library can be used in two ways. Either just copy it into your project and set up your project to be built with this library.
 * Or use the [stm32-cmake](https://github.com/ObKo/stm32-cmake) (see the next section).
 
 ## CMake
