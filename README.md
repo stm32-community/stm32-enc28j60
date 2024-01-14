@@ -1,19 +1,25 @@
 # stm32-enc28j60
 
-STM32 ENC28J60 ethernet driver, ported for CMake using [stm32-base](https://github.com/DVALight/stm32-base) and [stm32-cmake](https://github.com/ObKo/stm32-cmake)
+STM32 ENC28J60 ethernet driver, ported for CMake using [stm32-cmake](https://github.com/ObKo/stm32-cmake) and [stm32-base](https://github.com/DVALight/stm32-base)
 
-An implementation of ENC28J60 driver for STM32 MCU. Tested only on sending UDP packets and only on MCUs STM32F091xC, STM32F030x6 and STM32F103xB. If you need to use another STM32 MCU then don't forget to edit file [`src/stm32includes.h`](src/stm32includes.h).
+An implementation of ENC28J60 driver for STM32 MCU. Tested only on sending UDP packets and only on MCUs STM32F091xC, STM32F030x6, STM32F103xB and STM32F401VE.
+
+You need to copy `stm32*_hal_conf.h` of your MCU to `inc` folder to make it work.
+
+If you need to use another STM32 MCU then don't forget to edit file [`src/stm32includes.h`](src/stm32includes.h).
 
 ## How to use it
 
-* This library was tested in two ways. Either just copy it into your project and set up your project to be built with this library. This is how I used it.
-* Or use the cmake template (see the next section).
+* This library can be used in two ways. Either just copy it into your project and set up your project to be built with this library. This is how I used it.
+* Or use the [stm32-cmake](https://github.com/ObKo/stm32-cmake) (see the next section).
 
 ## CMake
 
+This project based on [stm32-cmake](https://github.com/ObKo/stm32-cmake), read it's readme and install, then set appropriate environment variables, see [`stm32-env-example.ps1`](stm32-env-example.ps1)
+
 The project comes with a template of a cmake configuration, so that it builds as library that can be linked using CMake in other STM32 projects. Use variables defined in [`CMakeLists.txt`](CMakeLists.txt) to enable, disable and configure internet modules.
 
-But to make it work uncomment the `list` and `target_link_libraries` lines and adapt to your specific MCU. Also, you might need to copy a header the `stm32*_hal_conf.h` file of your MCU (see the commented line `inc/stm32f4xx_hal_conf.h` in [`CMakeLists.txt`](CMakeLists.txt)).
+To make it work for your MCU family and model you must change `MCU_FAMILY` and `MCU_MODEL` CMake variables.
 
 ## Examples
 
