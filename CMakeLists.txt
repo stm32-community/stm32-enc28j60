@@ -12,7 +12,6 @@ set(SOURCES
 )
 
 set(HEADERS
-    #inc/stm32f4xx_hal_conf.h
     inc/defines.h
     inc/enc28j60.h
     inc/ip_arp_udp_tcp.h
@@ -23,6 +22,10 @@ set(HEADERS
     inc/EtherShield.h
     inc/error_handler.h
 )
+
+# change to your MCU family and model!
+set(MCU_FAMILY              "F4"            CACHE INTERNAL "STM32 MCU family")
+set(MCU_MODEL               "F401VE"        CACHE INTERNAL "STM32 MCU model")
 
 set(ETHERNET_LED_GPIO       "GPIOA"         CACHE INTERNAL "GPIO for ethernet LED")
 set(ETHERNET_LED_PIN        "GPIO_PIN_2"    CACHE INTERNAL "PIN for ethernet LED")
@@ -55,8 +58,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 
 ## STM32_TOOLCHAIN_PATH, STM32_TARGET_TRIPLET, STM32_CUBE_F4_PATH must be present in environment variables
 ## check https://github.com/DVALight/stm32-cmake for more info
-#list(APPEND HAL_COMP_LIST STM32F4 CORTEX RCC GPIO SPI)
-#list(APPEND CMSIS_COMP_LIST "STM32F4")
+
+list(APPEND HAL_COMP_LIST STM32F4 CORTEX RCC GPIO SPI)
+list(APPEND CMSIS_COMP_LIST "STM32" ${MCU_FAMILY})
 
 if(NOT STM32_CMAKE_PACKAGES)
     find_package(CMSIS COMPONENTS "${CMSIS_COMP_LIST}" REQUIRED)
@@ -91,13 +95,13 @@ target_compile_definitions(stm32-enc28j60 PUBLIC
     URLENCODE_websrv_help=${URLENCODE_websrv_help}
 )
 
-#target_link_libraries(stm32-enc28j60
-#    HAL::STM32::F4::RCC
-#    HAL::STM32::F4::GPIO
-#    HAL::STM32::F4::CORTEX
-#    CMSIS::STM32::F401VE
-#    STM32::NoSys
-#)
+target_link_libraries(stm32-enc28j60
+   HAL::STM32::${MCU_FAMILY}::RCC
+   HAL::STM32::${MCU_FAMILY}::GPIO
+   HAL::STM32::${MCU_FAMILY}::CORTEX
+   CMSIS::STM32::${MCU_MODEL}
+   STM32::NoSys
+)
 
 #add_custom_command(TARGET stm32-enc28j60 POST_BUILD
 #    COMMAND ${CMAKE_OBJCOPY} -O ihex stm32-enc28j60.elf stm32-enc28j60.hex
