@@ -6,11 +6,11 @@ An implementation of ENC28J60 driver for STM32 MCU. Tested only on sending UDP p
 
 You need to copy `stm32*_hal_conf.h` of your MCU to `inc` folder to make it work.
 
-If you need to use another STM32 MCU then don't forget to edit file [`src/stm32includes.h`](src/stm32includes.h).
+If you need to use another STM32 MCU then don't forget to edit file [`inc/stm32includes.h`](inc/stm32includes.h).
 
 ## How to use it
 
-* This library can be used in two ways. Either just copy it into your project and set up your project to be built with this library.
+* Either just copy it into your project and set up your project to be built with this library.
 * Or use the [stm32-cmake](https://github.com/ObKo/stm32-cmake) (see the next section).
 
 ## CMake
