@@ -1,7 +1,7 @@
 #ifndef __ENC28J60_H
 #define __ENC28J60_H
 
-#include "stm32includes.h"
+#include "defines.h"
 #define Delay HAL_Delay
 
 /*

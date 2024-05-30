@@ -8,11 +8,7 @@
 #ifndef WEBSRV_HELP_FUNCTIONS_H
 #define WEBSRV_HELP_FUNCTIONS_H
 
-#include "stm32includes.h"
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdio.h>
+#include "defines.h"
 
 // These functions are documented in websrv_help_functions.c
 extern uint8_t find_key_val(char *str,char *strbuf, uint8_t maxlen,char *key);

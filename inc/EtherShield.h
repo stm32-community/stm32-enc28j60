@@ -20,7 +20,7 @@
 #ifndef ETHERSHIELD_H
 #define ETHERSHIELD_H
 
-#include "stm32includes.h"
+#include "defines.h"
 
 #define bool _Bool
 #define TRUE 1

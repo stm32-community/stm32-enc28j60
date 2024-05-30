@@ -12,10 +12,9 @@
 #ifndef DNSLKUP_H
 #define DNSLKUP_H
 
-#include "stm32includes.h"
+#include "defines.h"
 
-// to use this you need to enable UDP_client in the file ip_config.h
-//
+// to use this you need to enable UDP_client in the file defines.h
 #if defined (UDP_client)
 
 // look-up a hostname (you should check client_waiting_gw() before calling this function):

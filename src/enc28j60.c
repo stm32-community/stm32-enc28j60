@@ -1,3 +1,4 @@
+#include "defines.h"
 #include "enc28j60.h"
 #include "error_handler.h"
 

@@ -6,7 +6,7 @@
  *
  * Some common utilities needed for IP and web applications
  *********************************************/
-
+#include "defines.h"
 #include "websrv_help_functions.h"
 
 #ifdef FROMDECODE_websrv_help

@@ -17,9 +17,7 @@
  *
  * Chip type           : ATMEGA88/168/328 with ENC28J60
  *********************************************/
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include "defines.h"
 #include "net.h"
 #include "enc28j60.h"
 #include "ip_arp_udp_tcp.h"

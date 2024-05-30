@@ -12,9 +12,7 @@
  * DHCP look-up functions based on the udp client
  * http://www.ietf.org/rfc/rfc2131.txt
  *********************************************/
-#include <stdlib.h>
-#include <string.h>
-
+#include "defines.h"
 #include "dhcp.h"
 #include "enc28j60.h"
 #include "ip_arp_udp_tcp.h"

@@ -12,12 +12,10 @@
 #ifndef DHCP_H
 #define DHCP_H
 
-#include "stm32includes.h"
+#include "defines.h"
 
-// to use this you need to enable UDP_client in the file ip_config.h
+// to use this you need to enable UDP_client in the file defines.h
 #if defined (UDP_client)
-
-// Some defines
 
 #define DHCP_BOOTREQUEST 1
 #define DHCP_BOOTRESPONSE 2

@@ -15,8 +15,7 @@
 #ifndef IP_ARP_UDP_TCP_H
 #define IP_ARP_UDP_TCP_H
 
-#include "stm32includes.h"
-#include <stdio.h>
+#include "defines.h"
 
 void __attribute__((weak)) ES_PingCallback(void);
 

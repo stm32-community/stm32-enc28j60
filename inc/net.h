@@ -19,7 +19,7 @@
 #ifndef NET_H
 #define NET_H
 
-#include "stm32includes.h"
+#include "defines.h"
 
 // ******* ETH *******
 #define ETH_HEADER_LEN	14

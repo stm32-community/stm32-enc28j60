@@ -9,8 +9,7 @@
  * DNS look-up functions based on the udp client
  *
  *********************************************/
-#include <string.h>
-#include <stdlib.h>
+#include "defines.h"
 #include "net.h"
 #include "ip_arp_udp_tcp.h"
 
