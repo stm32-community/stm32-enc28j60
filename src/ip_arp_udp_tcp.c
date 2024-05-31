@@ -762,9 +762,93 @@ uint8_t client_ntp_process_answer(uint8_t *buf,uint32_t *time,uint8_t dstport_l)
   }
   // copy time from the transmit time stamp field:
   *time=((uint32_t)buf[0x52]<<24)|((uint32_t)buf[0x53]<<16)|((uint32_t)buf[0x54]<<8)|((uint32_t)buf[0x55]);
+
+  //for the all paquet, this is where are the data:
+  //((uint32_t)buf[82] << 24) | ((uint32_t)buf[83] << 16) | ((uint32_t)buf[84] << 8) | (uint32_t)buf[85];
+
+  // Convert NTP timestamp to UNIX timestamp (seconds since 1970)
+  // by subtracting the seconds between 1900 and 1970.
+  // Note: This only takes into account the seconds part of the NTP timestamp and ignores fractional seconds.
+  if (*time > 2208988800UL) {
+	  *time -= 2208988800UL;
+  } else {
+      // Handle the case where the NTP timestamp is before the UNIX epoch (very unlikely, but for robustness)
+	  *time = 0;
+
+	    // Create structures for time and date
+	//    RTC_TimeTypeDef sTime = {0};
+	//    RTC_DateTypeDef sDate = {0};
+
+	    // Calculate time components
+	    uint32_t seconds = *time % 60;
+	    uint32_t minutes = (*time / 60) % 60;
+	    uint32_t hours = (*time / 3600) % 24;
+	    uint32_t days = *time / 86400; // Total number of days since 1970
+
+	    // The start of 1970 was a Thursday (day 4 of the week)
+	    uint32_t dayOfWeek = (4 + days) % 7 + 1; // 1 = Monday, ..., 7 = Sunday
+
+	    // Determine the year
+	    uint32_t year = 1970;
+	    while (days >= 365) {
+	        if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) {
+	            if (days < 366) break;
+	            days -= 366;
+	        } else {
+	            if (days < 365) break;
+	            days -= 365;
+	        }
+	        year++;
+	    }
+
+	    // Determine the month and the day of the month
+	    uint32_t month_lengths[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+	    if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) {
+	        month_lengths[1] = 29; // February has 29 days in leap years
+	    }
+
+	    uint32_t month = 0;
+	    for (month = 0; month < 12; month++) {
+	        if (days < month_lengths[month]) {
+	            break;
+	        }
+	        days -= month_lengths[month];
+	    }
+	    month++; // months are 1-12
+	    uint32_t dayOfMonth = days + 1; // days are 1-31
+
+	    // Configure time
+//	    sTime.Hours = hours;
+//	    sTime.Minutes = minutes;
+//	    sTime.Seconds = seconds;
+//	    sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+//	    sTime.StoreOperation = RTC_STOREOPERATION_RESET;
+
+	    // Configure date
+//	    sDate.WeekDay = dayOfWeek;
+//	    sDate.Month = month;
+//	    sDate.Date = dayOfMonth;
+//	    sDate.Year = year - 1970; // Year in the RTC structure is the year since 1970
+
+	    // Update the RTC
+//	    HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+//	    HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+
+//	    char timeStr[32]; // Adjusted size to hold formatted date and time
+//	    sprintf(timeStr, "%02d/%02d/%04d %02d:%02d:%02d UTC",
+//	            sDate.Date,
+//	            sDate.Month,
+//	            year,
+//	            sTime.Hours,
+//	            sTime.Minutes,
+//	            sTime.Seconds);
+//		#if ETHERSHIELD_DEBUG
+//	    	ethershieldDebug(timeStr);
+//		#endif
   return(1);
+  }
 }
-#endif
+#endif // NTP_client
 
 #ifdef UDP_client
 // -------------------- send a spontanious UDP packet to a server 
@@ -1347,16 +1431,12 @@ uint16_t packetloop_icmp_tcp(uint8_t * buf, uint16_t plen) {
   if (eth_type_is_ip_and_my_ip(buf, plen) == 0) {
     return (0);
   }
-  #ifdef NTP_client
-  // TODO - does this work?
-  // If NTP response, drop out to have it processed elsewhere
+#ifdef NTP_client
   if (buf[IP_PROTO_P] == IP_PROTO_UDP_V && buf[UDP_SRC_PORT_H_P] == 0 && buf[UDP_SRC_PORT_L_P] == 0x7b) {
     return (UDP_DATA_P);
   }
-  #endif // NTP_client
+#endif // NTP_client
   #ifdef DNS_client
-  // TODO - does this work?
-  // If DNS response, drop out to have it processed elsewhere
   if (buf[IP_PROTO_P] == IP_PROTO_UDP_V && buf[UDP_SRC_PORT_H_P] == 0 && buf[UDP_SRC_PORT_L_P] == 53) {
     return (UDP_DATA_P);
   }
@@ -1452,7 +1532,7 @@ uint16_t packetloop_icmp_tcp(uint8_t * buf, uint16_t plen) {
     if (tcp_client_state == 4) { //&& len>0){ 
       // our first real data packet
       #if ETHERSHIELD_DEBUG
-      //                        ethershieldDebug( "First Data Packet\n");
+      //ethershieldDebug( "First Data Packet\n");
       #endif
       // Removed this as there is no code to handle state 4. Only 1st packet will be available.
       //tcp_client_state=4;
