@@ -18,13 +18,13 @@ If you need to use another STM32 MCU then don't forget to edit file [`inc/stm32i
 
 Quick Start for Full Network Connection
 To quickly set up a complete network connection (DHCP, DNS, Gateway, etc.), use the following function:
-`void ES_FullConnection();` in the file: `EtherShield.c`
+`ES_FullConnection();` in the file: `EtherShield.c`
 Call this fonction just before the while and ping your device !
 
 and in your while think to use this for treat everything from your network :
-`void paquetweb() {
-	packetloop_icmp_tcp(packet, enc28j60PacketReceive(200, packet));
-}`
+` paquetweb();`
+
+Options for NSS Output Signal in defines.h that's a simple desactivation and activation on the file enc28j60.h.
 
 ## CMake
 

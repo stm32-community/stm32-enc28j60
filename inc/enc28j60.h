@@ -14,40 +14,24 @@ static inline void uDelay(uint32_t useconds) {
 #pragma GCC pop_options
 */
 
-#ifndef ETHERNET_LED_GPIO
-#	error Please define ETHERNET_LED_GPIO, for example by gcc option -DETHERNET_LED_GPIO=GPIOA
-#endif
-#ifndef ETHERNET_LED_PIN
-#	error Please define ETHERNET_LED_PIN, for example by gcc option -DETHERNET_LED_PIN=GPIO_PIN_5
-#endif
-
-#ifndef ETHERNET_CS_GPIO
-#	error Please define chip-select GPIO port ETHERNET_CS_GPIO, for example by gcc option -DETHERNET_CS_GPIO=GPIOA
-#endif
-#ifndef ETHERNET_CS_PIN
-#	error Please define chip-select pin ETHERNET_CS_PIN, for example by gcc option -DETHERNET_CS_PIN=GPIO_PIN_4
-#endif
-
-#ifndef ETHERNET_CS_DELAY
-#	warning ETHERNET_CS_DELAY is not defined. Setting to "2" (mseconds). Adapter may work very slow or not properly. If the latency on "1" is too big, but on "0" the adapter is not working properly, you can try values >= 10: it will use other delay method (for example try value 1000).
-#	define ETHERNET_CS_DELAY 2
-#endif
-
 #if ETHERNET_CS_DELAY >= 10
 #	define ETHERNET_CS_DELAY_PROC {volatile uint32_t i=ETHERNET_CS_DELAY; while(i--);}
 #else
 #	define ETHERNET_CS_DELAY_PROC Delay(ETHERNET_CS_DELAY)
 #endif
 
-#define disableChip  ETHERNET_CS_GPIO->BSRR = ETHERNET_CS_PIN;\
-	ETHERNET_LED_GPIO->BSRR = ETHERNET_LED_PIN << 16;\
-	ETHERNET_CS_DELAY_PROC;
-#define enableChip   ETHERNET_CS_GPIO->BSRR = ETHERNET_CS_PIN<<16;\
-	ETHERNET_LED_GPIO->BSRR = ETHERNET_LED_PIN;\
-	ETHERNET_CS_DELAY_PROC;
-//#define disableChip  {}
-//#define enableChip   {}
-
+#ifdef CS_Only
+//#define disableChip  ETHERNET_CS_GPIO->BSRR = ETHERNET_CS_PIN;\
+//	ETHERNET_LED_GPIO->BSRR = ETHERNET_LED_PIN << 16;\
+//	ETHERNET_CS_DELAY_PROC;
+//#define enableChip   ETHERNET_CS_GPIO->BSRR = ETHERNET_CS_PIN<<16;\
+//	ETHERNET_LED_GPIO->BSRR = ETHERNET_LED_PIN;\
+//	ETHERNET_CS_DELAY_PROC;
+#endif
+#ifdef NSS_OutputSignal
+#define disableChip __HAL_SPI_DISABLE(hspi);
+#define enableChip __HAL_SPI_ENABLE(hspi);
+#endif
 
 // ENC28J60 Control Registers
 // Control register definitions are a combination of address,
