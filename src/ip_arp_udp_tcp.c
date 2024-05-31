@@ -711,7 +711,6 @@ void __attribute__((weak)) ES_PingCallback(void)
 #ifdef NTP_client
 // ntp udp packet
 // See http://tools.ietf.org/html/rfc958 for details
-//
 void client_ntp_request(uint8_t *buf,uint8_t *ntpip,uint8_t srcport)
 {
   uint16_t ck;
@@ -762,7 +761,6 @@ uint8_t client_ntp_process_answer(uint8_t *buf,uint32_t *time,uint8_t dstport_l)
   }
   // copy time from the transmit time stamp field:
   *time=((uint32_t)buf[0x52]<<24)|((uint32_t)buf[0x53]<<16)|((uint32_t)buf[0x54]<<8)|((uint32_t)buf[0x55]);
-
   //for the all paquet, this is where are the data:
   //((uint32_t)buf[82] << 24) | ((uint32_t)buf[83] << 16) | ((uint32_t)buf[84] << 8) | (uint32_t)buf[85];
 
@@ -776,8 +774,8 @@ uint8_t client_ntp_process_answer(uint8_t *buf,uint32_t *time,uint8_t dstport_l)
 	  *time = 0;
 
 	    // Create structures for time and date
-	//    RTC_TimeTypeDef sTime = {0};
-	//    RTC_DateTypeDef sDate = {0};
+//	    RTC_TimeTypeDef sTime = {0};
+//	    RTC_DateTypeDef sDate = {0};
 
 	    // Calculate time components
 	    uint32_t seconds = *time % 60;
@@ -909,25 +907,15 @@ void send_udp_transmit(uint8_t *buf,uint16_t datalen)
 void send_udp(uint8_t *buf,char *data,uint16_t datalen,uint16_t sport, uint8_t *dip, uint16_t dport)
 {
   send_udp_prepare(buf,sport, dip, dport);
-  // limit the length: Why??? ADL
-  // NOTE: We dont need such silly limits on powerful STM32s
-  // if (datalen>220){
-  //         datalen=220;
-  // }
-  // copy the data:
   memcpy(&buf[UDP_DATA_P], data, datalen);
-  //
   send_udp_transmit(buf,datalen);
 }
 #endif // UDP_client
 
 #ifdef WOL_client
-// -------------------- special code to make a WOL packet
-
 // A WOL (Wake on Lan) packet is a UDP packet to the broadcast
 // address and UDP port 9. The data part contains 6x FF followed by
 // 16 times the mac address of the host to wake-up
-//
 void send_wol(uint8_t *buf,uint8_t *wolmac)
 {
   uint16_t ck;
@@ -974,7 +962,6 @@ void send_wol(uint8_t *buf,uint8_t *wolmac)
 // make a arp request
 void client_arp_whohas(uint8_t *buf,uint8_t *ip_we_search)
 {
-  //
   memset(&buf[ETH_DST_MAC], 0xFF, 6);
   memcpy(&buf[ETH_SRC_MAC], macaddr, 6);
   buf[ETH_TYPE_H_P] = ETHTYPE_ARP_H_V;
@@ -1001,7 +988,6 @@ uint8_t client_waiting_gw(void)
   return(1);
 }
 
-
 // store the mac addr from an arp reply
 // no len check here, you must first call eth_type_is_arp_and_my_ip
 uint8_t client_store_gw_mac(uint8_t *buf)
@@ -1009,7 +995,6 @@ uint8_t client_store_gw_mac(uint8_t *buf)
   if (memcmp(&buf[ETH_ARP_SRC_IP_P], gwip, 4)) {
     return 0;
   }
-
   memcpy(gwmacaddr, &buf[ETH_ARP_SRC_MAC_P], 6);
   return 1;
 }
@@ -1425,23 +1410,21 @@ uint16_t packetloop_icmp_tcp(uint8_t * buf, uint16_t plen) {
     }
     #endif // NTP_client||UDP_client||TCP_client||PING_client
     return (0);
-
   }
   // check if ip packets are for us:
   if (eth_type_is_ip_and_my_ip(buf, plen) == 0) {
     return (0);
   }
-#ifdef NTP_client
+  #ifdef NTP_client
   if (buf[IP_PROTO_P] == IP_PROTO_UDP_V && buf[UDP_SRC_PORT_H_P] == 0 && buf[UDP_SRC_PORT_L_P] == 0x7b) {
     return (UDP_DATA_P);
   }
-#endif // NTP_client
+  #endif // NTP_client
   #ifdef DNS_client
   if (buf[IP_PROTO_P] == IP_PROTO_UDP_V && buf[UDP_SRC_PORT_H_P] == 0 && buf[UDP_SRC_PORT_L_P] == 53) {
     return (UDP_DATA_P);
   }
-  #endif
-
+  #endif // NTP_client
   if (buf[IP_PROTO_P] == IP_PROTO_ICMP_V && buf[ICMP_TYPE_P] == ICMP_TYPE_ECHOREQUEST_V) {
     if (icmp_callback) {
       ( * icmp_callback)( & (buf[IP_SRC_P]));
@@ -1479,7 +1462,6 @@ uint16_t packetloop_icmp_tcp(uint8_t * buf, uint16_t plen) {
     }
 
     // Determine what to do with packed depending on state
-
     len = get_tcp_data_len(buf);
     if (tcp_client_state == 2) {
       if ((buf[TCP_FLAGS_P] & TCP_FLAGS_SYN_V) && (buf[TCP_FLAGS_P] & TCP_FLAGS_ACK_V)) {
@@ -1532,7 +1514,7 @@ uint16_t packetloop_icmp_tcp(uint8_t * buf, uint16_t plen) {
     if (tcp_client_state == 4) { //&& len>0){ 
       // our first real data packet
       #if ETHERSHIELD_DEBUG
-      //ethershieldDebug( "First Data Packet\n");
+      ethershieldDebug( "First Data Packet\n");
       #endif
       // Removed this as there is no code to handle state 4. Only 1st packet will be available.
       //tcp_client_state=4;
@@ -1567,7 +1549,7 @@ uint16_t packetloop_icmp_tcp(uint8_t * buf, uint16_t plen) {
     if (tcp_client_state == 3) { // && len>0){ 
       // our first real data packet
       #if ETHERSHIELD_DEBUG
-      //                        ethershieldDebug( "First Data Packet\n");
+      ethershieldDebug( "First Data Packet\n");
       #endif
       // Removed this as there is no code to handle state 4. Only 1st packet will be available.
       tcp_client_state = 4;
@@ -1626,7 +1608,6 @@ uint16_t packetloop_icmp_tcp(uint8_t * buf, uint16_t plen) {
     return (0);
   }
   #endif // WWW_client||TCP_client
-  //
   // tcp port web server start
   if (buf[TCP_DST_PORT_H_P] == wwwport_h && buf[TCP_DST_PORT_L_P] == wwwport_l) {
     if (buf[TCP_FLAGS_P] & TCP_FLAGS_SYN_V) {
@@ -1658,7 +1639,6 @@ uint16_t packetloop_icmp_tcp(uint8_t * buf, uint16_t plen) {
   }
   return (0);
 }
-
 #endif
 
 /* end of ip_arp_udp.c */
