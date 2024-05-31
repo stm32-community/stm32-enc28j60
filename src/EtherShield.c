@@ -59,6 +59,43 @@ The file should be extracted to the sketchbook/libraries/ folder so that there i
 
 #include "EtherShield.h"
 
+#define BUFFER_SIZE 500
+
+void ES_FullConnection(SPI_HandleTypeDef *hspi) {
+	enc28j60_set_spi(hspi);
+	enc28j60Init( macaddrin );
+	enc28j60clkout(3);
+	HAL_Delay(10);
+
+	int f;
+	for( f=0; f<3; f++ ) {
+	  	// 0x880 is PHLCON LEDB=on, LEDA=on
+	  	// enc28j60PhyWrite(PHLCON,0b0011 1000 1000 00 00);
+	  enc28j60PhyWrite(PHLCON,0x3880);
+	  HAL_Delay(500);
+
+	  // 0x990 is PHLCON LEDB=off, LEDA=off
+	  // enc28j60PhyWrite(PHLCON,0b0011 1001 1001 00 00);
+	  enc28j60PhyWrite(PHLCON,0x3990);
+	  HAL_Delay(500);
+	}
+
+	  // 0x476 is PHLCON LEDA=links status, LEDB=receive/transmit
+	  // enc28j60PhyWrite(PHLCON,0b0011 0100 0111 01 10);
+	enc28j60PhyWrite(PHLCON,0x3476);
+	HAL_Delay(100);
+	static uint8_t bufDHCP[BUFFER_SIZE];
+	allocateIPAddress(bufDHCP, BUFFER_SIZE, macaddrin, 80, ipaddrin, maskin, gwipin, dnssvrin, dhcpsvrin);
+	client_set_gwip(gwipin);
+	static uint8_t bufDNS[BUFFER_SIZE];
+	dnslkup_request(bufDNS, hostname);
+	udp_client_check_for_dns_answer(bufDNS, plen);
+	dnslkup_set_dnsip(dnsipaddr);
+	resolveHostname(bufDNS, BUFFER_SIZE, hostname);
+	static uint8_t bufNTP[BUFFER_SIZE];
+	ES_client_ntp_request(bufNTP, ntpip, 123);
+}
+
 /**
  * Initialise SPI, separate from main initialisation so that
  * multiple SPI devices can be used together

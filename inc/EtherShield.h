@@ -31,6 +31,7 @@
 #include "ip_arp_udp_tcp.h"
 #include "net.h"
 
+void ES_FullConnection();
 void ES_enc28j60SpiInit( SPI_HandleTypeDef *hspi );
 void ES_enc28j60Init( uint8_t* macaddr);
 void ES_enc28j60clkout(uint8_t clk);

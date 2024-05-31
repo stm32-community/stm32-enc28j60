@@ -13,6 +13,19 @@ If you need to use another STM32 MCU then don't forget to edit file [`inc/stm32i
 * Either just copy it into your project and set up your project to be built with this library.
 * Or use the [stm32-cmake](https://github.com/ObKo/stm32-cmake) (see the next section).
 
+
+### News on branch V3
+
+Quick Start for Full Network Connection
+To quickly set up a complete network connection (DHCP, DNS, Gateway, etc.), use the following function:
+`void ES_FullConnection();` in the file: `EtherShield.c`
+Call this fonction just before the while and ping your device !
+
+and in your while think to use this for treat everything from your network :
+`void paquetweb() {
+	packetloop_icmp_tcp(packet, enc28j60PacketReceive(200, packet));
+}`
+
 ## CMake
 
 This project based on [stm32-cmake](https://github.com/ObKo/stm32-cmake), read it's readme and install, then set appropriate environment variables, see [`stm32-env-example.ps1`](stm32-env-example.ps1)
