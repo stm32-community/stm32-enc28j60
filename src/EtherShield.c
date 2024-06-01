@@ -44,7 +44,7 @@ The file should be extracted to the sketchbook/libraries/ folder so that there i
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-
+#include "defines.h"
 #include "enc28j60.h"
 #include "ip_arp_udp_tcp.h"
 #include "websrv_help_functions.h"
@@ -63,8 +63,8 @@ The file should be extracted to the sketchbook/libraries/ folder so that there i
 
 void ES_FullConnection(SPI_HandleTypeDef *hspi) {
 	enc28j60_set_spi(hspi);
-	enc28j60Init( macaddrin );
-	enc28j60clkout(3);
+	enc28j60Init(macaddrin);
+	enc28j60clkout(2);
 	HAL_Delay(10);
 
 	int f;
@@ -96,6 +96,10 @@ void ES_FullConnection(SPI_HandleTypeDef *hspi) {
 	ES_client_ntp_request(bufNTP, ntpip, 123);
 }
 
+void paquetweb() {
+	static uint8_t packet[500];
+	packetloop_icmp_tcp(packet, enc28j60PacketReceive(500, packet));
+}
 /**
  * Initialise SPI, separate from main initialisation so that
  * multiple SPI devices can be used together
