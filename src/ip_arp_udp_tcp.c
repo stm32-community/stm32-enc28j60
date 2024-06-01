@@ -28,8 +28,17 @@
 #if ETHERSHIELD_DEBUG
 void ethershieldDebug(char *message) {
     printf("%s\r\n", message);    
+    udpLog2("ETHERSHIELD_DEBUG", message);
 }
 #endif
+
+void udpLog2(char* alerte, char* text) {
+    static uint8_t udp[500];
+    char data[450];
+    snprintf(data, 450, "Project %s - %s", alerte, text);
+    send_udp(udp, data, strlen(data), sport, dip, dport);
+}
+
 
 // Web server port, used when implementing webserver
 static uint8_t wwwport_l=80; // server port
