@@ -64,9 +64,6 @@ The file should be extracted to the sketchbook/libraries/ folder so that there i
 void ES_FullConnection(SPI_HandleTypeDef *hspi) {
 	enc28j60_set_spi(hspi);
 	enc28j60Init(macaddrin);
-	enc28j60clkout(2);
-	HAL_Delay(10);
-
 	int f;
 	for( f=0; f<3; f++ ) {
 	  	// 0x880 is PHLCON LEDB=on, LEDA=on
@@ -94,6 +91,7 @@ void ES_FullConnection(SPI_HandleTypeDef *hspi) {
 	resolveHostname(bufDNS, BUFFER_SIZE, hostname);
 	static uint8_t bufNTP[BUFFER_SIZE];
 	ES_client_ntp_request(bufNTP, ntpip, 123);
+	udpLog2("test", "test");
 }
 
 void paquetweb() {
