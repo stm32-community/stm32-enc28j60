@@ -39,3 +39,37 @@ To make it work for your MCU family and model you must change `MCU_FAMILY` and `
 * [dc-thermal-logger](https://github.com/mephi-ut/dc-thermal-logger/blob/master/collector/firmware/Src/main.c)
 * [STM32_Devel](https://github.com/mephi-ut/STM32_Devel)
 * [nucleo-f091rc-rs232-enc28j60](https://github.com/mephi-ut/nucleo-f091rc-rs232-enc28j60/blob/master/Src/main.c)
+
+# License
+Mainpage Arduino ENC28J60 EtherShield Library
+## section Introduction
+This library is derived from original code by Guido Socher and Pascal Stang, and hence licensed as GPL2. See http://www.gnu.org/licenses/gpl.html
+It comprises a C++ class wrapper and a number of C files. It still follows pretty much the same structure as the original code that it was based on.
+The Arduino EtherShield Library was initially created by Xing Yu of Nuelectronics, http://www.nuelectronics.com/estore/index.php?main_page=product_info&cPath=1&products_id=4
+The library was heavily modified and improved by Andrew D. Lindsay (http://blog.thiseldo.co.uk) with extra code from the Tuxgraphics.org ethernet library (http://www.tuxgraphics.org/electronics/200905/embedded-tcp-ip-stack.shtml), which also originated from the Pascal Stang code.
+Further additions include the DHCP implementation with some assistance from JCW at http://jeelabs.org which is now used in their own version of the library for their EtherCard at http://jeelabs.net/projects/hardware/wiki/Ether_Card.
+The library is now being used successfully with the Nanode, as minimal Ethernet connected Arduino compatible board, details available from http://wiki.london.hackspace.org.uk/view/Project:Nanode
+
+## section Download
+Download the latest library and examples from https://github.com/thiseldo/EtherShield
+To fully utilise the Nanode board, you will also require a library that can access the onboard MAC address chip.
+One such library is available from https://github.com/thiseldo/NanodeMAC and is used in the examples provided with this library.
+
+## section Instalation
+The library .zip file downloaded from https://github.com/thiseldo/EtherShield should be renamed to EtherShield.zip or EtherShield.tar.gz depending on the archive file you're downloading.
+The file should be extracted to the sketchbook/libraries/ folder so that there is a subdirectory called EtherSheild containing all the files from the archive.
+
+## section License
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  A copy of the GNU Lesser General Public
+  License is available from http://www.gnu.org/licenses/gpl.html; or write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA

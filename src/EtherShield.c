@@ -1,50 +1,5 @@
-/*! \mainpage Arduino ENC28J60 EtherShield Library
-
-\section Introduction
-
-This library is derived from original code by Guido Socher and Pascal Stang, and hence licensed as GPL2. See http://www.gnu.org/licenses/gpl.html
-
-It comprises a C++ class wrapper and a number of C files. It still follows pretty much the same structure as the original code that it was based on.
-
-The Arduino EtherShield Library was initially created by Xing Yu of Nuelectronics, http://www.nuelectronics.com/estore/index.php?main_page=product_info&cPath=1&products_id=4
-
-The library was heavily modified and improved by Andrew D. Lindsay (http://blog.thiseldo.co.uk) with extra code from the Tuxgraphics.org ethernet library (http://www.tuxgraphics.org/electronics/200905/embedded-tcp-ip-stack.shtml), which also originated from the Pascal Stang code.
-
-Further additions include the DHCP implementation with some assistance from JCW at http://jeelabs.org which is now used in their own version of the library for their EtherCard at http://jeelabs.net/projects/hardware/wiki/Ether_Card.
-
-The library is now being used successfully with the Nanode, as minimal Ethernet connected Arduino compatible board, details available from http://wiki.london.hackspace.org.uk/view/Project:Nanode
-
-\section Download
-
-Download the latest library and examples from https://github.com/thiseldo/EtherShield
-
-To fully utilise the Nanode board, you will also require a library that can access the onboard MAC address chip.
-One such library is available from https://github.com/thiseldo/NanodeMAC and is used in the examples provided with this library.
-
-\section Instalation
-
-The library .zip file downloaded from https://github.com/thiseldo/EtherShield should be renamed to EtherShield.zip or EtherShield.tar.gz depending on the archive file you're downloading.
-
-The file should be extracted to the sketchbook/libraries/ folder so that there is a subdirectory called EtherSheild containing all the files from the archive.
-
-\section License
-
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
-
-  A copy of the GNU Lesser General Public
-  License is available from http://www.gnu.org/licenses/gpl.html; or write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
- */
 #include "defines.h"
+#include "main.h"
 #include "enc28j60.h"
 #include "ip_arp_udp_tcp.h"
 #include "websrv_help_functions.h"
@@ -61,37 +16,42 @@ The file should be extracted to the sketchbook/libraries/ folder so that there i
 
 #define BUFFER_SIZE 500
 
+uint8_t bufDHCP[BUFFER_SIZE];
+uint8_t bufDNS[BUFFER_SIZE];
+uint8_t bufNTP[BUFFER_SIZE];
+uint16_t plen;
+
+char hostname[] = "www.google.com";
+
+
 void ES_FullConnection(SPI_HandleTypeDef *hspi) {
 	enc28j60_set_spi(hspi);
 	enc28j60Init(macaddrin);
+	enc28j60clkout(3);
+	HAL_Delay(10);
 	int f;
 	for( f=0; f<3; f++ ) {
 	  	// 0x880 is PHLCON LEDB=on, LEDA=on
 	  	// enc28j60PhyWrite(PHLCON,0b0011 1000 1000 00 00);
 	  enc28j60PhyWrite(PHLCON,0x3880);
 	  HAL_Delay(500);
-
 	  // 0x990 is PHLCON LEDB=off, LEDA=off
 	  // enc28j60PhyWrite(PHLCON,0b0011 1001 1001 00 00);
 	  enc28j60PhyWrite(PHLCON,0x3990);
 	  HAL_Delay(500);
 	}
-
 	  // 0x476 is PHLCON LEDA=links status, LEDB=receive/transmit
 	  // enc28j60PhyWrite(PHLCON,0b0011 0100 0111 01 10);
 	enc28j60PhyWrite(PHLCON,0x3476);
 	HAL_Delay(100);
-	static uint8_t bufDHCP[BUFFER_SIZE];
 	allocateIPAddress(bufDHCP, BUFFER_SIZE, macaddrin, 80, ipaddrin, maskin, gwipin, dnssvrin, dhcpsvrin);
 	client_set_gwip(gwipin);
-	static uint8_t bufDNS[BUFFER_SIZE];
 	dnslkup_request(bufDNS, hostname);
 	udp_client_check_for_dns_answer(bufDNS, plen);
 	dnslkup_set_dnsip(dnsipaddr);
 	resolveHostname(bufDNS, BUFFER_SIZE, hostname);
-	static uint8_t bufNTP[BUFFER_SIZE];
 	ES_client_ntp_request(bufNTP, ntpip, 123);
-	udpLog2("test", "test");
+	udpLog2("ES_FullConnection", "WORKS!");
 }
 
 void paquetweb() {
