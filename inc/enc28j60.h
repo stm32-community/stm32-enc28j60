@@ -13,21 +13,21 @@ static inline void uDelay(uint32_t useconds) {
 }
 #pragma GCC pop_options
 */
-
+#ifdef CS_Only
 #if ETHERNET_CS_DELAY >= 10
 #	define ETHERNET_CS_DELAY_PROC {volatile uint32_t i=ETHERNET_CS_DELAY; while(i--);}
 #else
 #	define ETHERNET_CS_DELAY_PROC Delay(ETHERNET_CS_DELAY)
 #endif
 
-#ifdef CS_Only
-//#define disableChip  ETHERNET_CS_GPIO->BSRR = ETHERNET_CS_PIN;\
-//	ETHERNET_LED_GPIO->BSRR = ETHERNET_LED_PIN << 16;\
-//	ETHERNET_CS_DELAY_PROC;
-//#define enableChip   ETHERNET_CS_GPIO->BSRR = ETHERNET_CS_PIN<<16;\
-//	ETHERNET_LED_GPIO->BSRR = ETHERNET_LED_PIN;\
-//	ETHERNET_CS_DELAY_PROC;
+#define disableChip  ETHERNET_CS_GPIO->BSRR = ETHERNET_CS_PIN;\
+	ETHERNET_LED_GPIO->BSRR = ETHERNET_LED_PIN << 16;\
+	ETHERNET_CS_DELAY_PROC;
+#define enableChip   ETHERNET_CS_GPIO->BSRR = ETHERNET_CS_PIN<<16;\
+	ETHERNET_LED_GPIO->BSRR = ETHERNET_LED_PIN;\
+	ETHERNET_CS_DELAY_PROC;
 #endif
+
 #ifdef NSS_OutputSignal
 #define disableChip __HAL_SPI_DISABLE(hspi);
 #define enableChip __HAL_SPI_ENABLE(hspi);

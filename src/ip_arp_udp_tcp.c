@@ -22,6 +22,14 @@
 #include "enc28j60.h"
 #include "ip_arp_udp_tcp.h"
 
+//uint8_t dest_ip[4] = {10, 0, 0, 17}; // Adresse IP de l'Orange pi zero 3 - ArmDebian
+//uint16_t dest_port = 10001;
+//uint16_t srcport = 10002;
+//uint8_t dstport_h = 0x27; // Partie haute du port 10001
+//uint8_t dstport_l = 0x11; // Partie basse du port 10001
+//uint8_t dip[] = {10, 0, 0, 17}; // Adresse IP de l'Orange pi zero 3 - ArmDebian
+//uint16_t dport = 514; // UDP Port  de l'Orange pi zero 3 - ArmDebian
+//uint16_t sport = 8;
 
 #if ETHERSHIELD_DEBUG
 void ethershieldDebug(char *message) {
