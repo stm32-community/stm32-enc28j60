@@ -43,7 +43,7 @@ uint8_t *dnslkup_getip()
 // and http://www.ietf.org/rfc/rfc1035.txt
 //
 //void dnslkup_request(uint8_t *buf,const prog_char *progmem_hostname)
-void dnslkup_request(uint8_t *buf, uint8_t  *hostname)
+void dnslkup_request(uint8_t *buf, uint8_t  *domainName)
 {
         uint8_t i,lenpos,lencnt;
         char c;
@@ -72,7 +72,7 @@ void dnslkup_request(uint8_t *buf, uint8_t  *hostname)
         i=13;
         lencnt=1;
 //        while ((c = pgm_read_byte(progmem_hostname++))) {
-        while ((c = *hostname++)) {
+        while ((c = *domainName++)) {
                 if (c=='.'){
                         buf[UDP_DATA_P+lenpos]=lencnt-1;
                         lencnt=0;

@@ -161,7 +161,7 @@ void client_http_post(char *urlbuf, char *hoststr, char *additionalheaderline, c
 
 #ifdef NTP_client
 void client_ntp_request(uint8_t *buf,uint8_t *ntpip,uint8_t srcport);
-uint8_t client_ntp_process_answer(uint8_t *buf,uint32_t *time,uint8_t dstport_l);
+void client_ntp_process_answer(uint8_t *buf);
 #endif
 
 #ifdef UDP_client

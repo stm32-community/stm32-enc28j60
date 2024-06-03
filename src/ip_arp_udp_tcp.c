@@ -762,41 +762,32 @@ void client_ntp_request(uint8_t *buf,uint8_t *ntpip,uint8_t srcport)
   enc28j60PacketSend(90,buf);
 }
 // process the answer from the ntp server:
-// if dstport==0 then accept any port otherwise only answers going to dstport
 // return 1 on sucessful processing of answer
-uint8_t client_ntp_process_answer(uint8_t *buf,uint32_t *time,uint8_t dstport_l){
-  if (dstport_l){
-    if (buf[UDP_DST_PORT_L_P]!=dstport_l){ 
-      return(0);
-    }
-  }
-  if (buf[UDP_LEN_H_P]!=0 || buf[UDP_LEN_L_P]!=56 || buf[UDP_SRC_PORT_L_P]!=0x7b){
-    // not ntp
-    return(0);
-  }
+void client_ntp_process_answer(uint8_t *buf){
+  uint32_t time;
   // copy time from the transmit time stamp field:
-  *time=((uint32_t)buf[0x52]<<24)|((uint32_t)buf[0x53]<<16)|((uint32_t)buf[0x54]<<8)|((uint32_t)buf[0x55]);
+  time=((uint32_t)buf[0x52]<<24)|((uint32_t)buf[0x53]<<16)|((uint32_t)buf[0x54]<<8)|((uint32_t)buf[0x55]);
   //for the all paquet, this is where are the data:
-  //((uint32_t)buf[82] << 24) | ((uint32_t)buf[83] << 16) | ((uint32_t)buf[84] << 8) | (uint32_t)buf[85];
+  //time=((uint32_t)buf[82] << 24) | ((uint32_t)buf[83] << 16) | ((uint32_t)buf[84] << 8) | (uint32_t)buf[85];
 
   // Convert NTP timestamp to UNIX timestamp (seconds since 1970)
   // by subtracting the seconds between 1900 and 1970.
   // Note: This only takes into account the seconds part of the NTP timestamp and ignores fractional seconds.
-  if (*time > 2208988800UL) {
-	  *time -= 2208988800UL;
+  if (time > 2208988800UL) {
+	  time -= 2208988800UL;
   } else {
       // Handle the case where the NTP timestamp is before the UNIX epoch (very unlikely, but for robustness)
-	  *time = 0;
+	  time = 0;
 
 	    // Create structures for time and date
-//	    RTC_TimeTypeDef sTime = {0};
-//	    RTC_DateTypeDef sDate = {0};
+	    RTC_TimeTypeDef sTime = {0};
+	    RTC_DateTypeDef sDate = {0};
 
 	    // Calculate time components
-	    uint32_t seconds = *time % 60;
-	    uint32_t minutes = (*time / 60) % 60;
-	    uint32_t hours = (*time / 3600) % 24;
-	    uint32_t days = *time / 86400; // Total number of days since 1970
+	    uint32_t seconds = time % 60;
+	    uint32_t minutes = (time / 60) % 60;
+	    uint32_t hours = (time / 3600) % 24;
+	    uint32_t days = time / 86400; // Total number of days since 1970
 
 	    // The start of 1970 was a Thursday (day 4 of the week)
 	    uint32_t dayOfWeek = (4 + days) % 7 + 1; // 1 = Monday, ..., 7 = Sunday
@@ -830,35 +821,32 @@ uint8_t client_ntp_process_answer(uint8_t *buf,uint32_t *time,uint8_t dstport_l)
 	    month++; // months are 1-12
 	    uint32_t dayOfMonth = days + 1; // days are 1-31
 
-	    // Configure time
-//	    sTime.Hours = hours;
-//	    sTime.Minutes = minutes;
-//	    sTime.Seconds = seconds;
-//	    sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
-//	    sTime.StoreOperation = RTC_STOREOPERATION_RESET;
+//	     Configure time
+	    sTime.Hours = hours;
+	    sTime.Minutes = minutes;
+	    sTime.Seconds = seconds;
+	    sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+	    sTime.StoreOperation = RTC_STOREOPERATION_RESET;
 
-	    // Configure date
-//	    sDate.WeekDay = dayOfWeek;
-//	    sDate.Month = month;
-//	    sDate.Date = dayOfMonth;
-//	    sDate.Year = year - 1970; // Year in the RTC structure is the year since 1970
+//	     Configure date
+	    sDate.WeekDay = dayOfWeek;
+	    sDate.Month = month;
+	    sDate.Date = dayOfMonth;
+	    sDate.Year = year - 1970; // Year in the RTC structure is the year since 1970
 
-	    // Update the RTC
-//	    HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-//	    HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+//	     Update the RTC
+	    HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+	    HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
 
-//	    char timeStr[32]; // Adjusted size to hold formatted date and time
-//	    sprintf(timeStr, "%02d/%02d/%04d %02d:%02d:%02d UTC",
-//	            sDate.Date,
-//	            sDate.Month,
-//	            year,
-//	            sTime.Hours,
-//	            sTime.Minutes,
-//	            sTime.Seconds);
-//		#if ETHERSHIELD_DEBUG
-//	    	ethershieldDebug(timeStr);
-//		#endif
-  return(1);
+	    char timeStr[32]; // Adjusted size to hold formatted date and time
+	    sprintf(timeStr, "%02d/%02d/%04d %02d:%02d:%02d UTC",
+	            sDate.Date,
+	            sDate.Month,
+	            year,
+	            sTime.Hours,
+	            sTime.Minutes,
+	            sTime.Seconds);
+	    udpLog2("NTP indique la date suivante :", timeStr);
   }
 }
 #endif // NTP_client
@@ -1432,7 +1420,7 @@ uint16_t packetloop_icmp_tcp(uint8_t * buf, uint16_t plen) {
   }
   #ifdef NTP_client
   if (buf[IP_PROTO_P] == IP_PROTO_UDP_V && buf[UDP_SRC_PORT_H_P] == 0 && buf[UDP_SRC_PORT_L_P] == 0x7b) {
-    return (UDP_DATA_P);
+	  client_ntp_process_answer(UDP_DATA_P);
   }
   #endif // NTP_client
   #ifdef DNS_client
