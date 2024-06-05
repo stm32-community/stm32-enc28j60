@@ -17,6 +17,10 @@
 
 #include "defines.h"
 
+#define bool _Bool
+#define TRUE 1
+#define FALSE 0
+
 void __attribute__((weak)) ES_PingCallback(void);
 
 // -- web server functions --
@@ -48,9 +52,7 @@ uint16_t checksum(uint8_t *buf, uint16_t len,uint8_t type);
 uint8_t eth_type_is_ip_and_my_ip(uint8_t *buf,uint16_t len);
 void make_udp_reply_from_request(uint8_t *buf,char *data,uint16_t datalen,uint16_t port);
 
-// return 0 to just continue in the packet loop and return the position 
-// of the tcp data if there is tcp data part
-uint16_t packetloop_icmp_tcp(uint8_t *buf,uint16_t plen);
+
 // functions to fill the web pages with data:
 //extern uint16_t fill_tcp_data_p(uint8_t *buf,uint16_t pos, const prog_char *progmem_s);
 uint16_t fill_tcp_data(uint8_t *buf,uint16_t pos, const char *s);
@@ -194,6 +196,13 @@ uint8_t packetloop_icmp_checkreply(uint8_t *buf,uint8_t *ip_monitoredhost);
 #ifdef WOL_client
 void send_wol(uint8_t *buf,uint8_t *wolmac);
 #endif // WOL_client
+
+uint8_t allocateIPAddress(uint8_t *buf, uint16_t buffer_size, uint8_t *mymac, uint16_t myport, uint8_t *myip, uint8_t *mynetmask, uint8_t *gwip, uint8_t *dnsip, uint8_t *dhcpsvrip );
+uint8_t resolveHostname(uint8_t *buf, uint16_t buffer_size, uint8_t *hostname );
+
+// return 0 to just continue in the packet loop and return the position
+// of the tcp data if there is tcp data part
+uint16_t packetloop_icmp_tcp(uint8_t *buf,uint16_t plen);
 
 uint8_t nextTcpState( uint8_t *buf,uint16_t plen );
 uint8_t currentTcpState( );
