@@ -1,3 +1,14 @@
+/*
+ * ENC28J60.c
+ *
+ * Created on: Jun 4, 2024
+ * Author: dtneo
+ *
+ * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
+ * It includes control register definitions, chip enable/disable macros, and configurations for delays and
+ * chip select (CS) handling.
+ */
+
 #include "defines.h"
 #include "enc28j60.h"
 #include "error_handler.h"
@@ -7,83 +18,7 @@ static uint16_t gNextPacketPtr;
 static uint8_t erxfcon;
 static SPI_HandleTypeDef *hspi = NULL;
 
-#if 0
-void ENC28J60_hspi->Instance_Configuration(void)
-{
-	SPI_InitTypeDef   SPI_InitStructure;
 
-    /* Enable the SPI periph */
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_hspi->Instance, ENABLE);
-
-    /* SPI configuration -------------------------------------------------------*/
-    SPI_I2S_DeInit(hspi->Instance);
-    SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
-    SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
-    SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
-    SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
-    SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
-    SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_64;
-    SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
-    SPI_InitStructure.SPI_CRCPolynomial = 7;
-    SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
-    SPI_Init(hspi->Instance, &SPI_InitStructure);
-
-    /* Enable hspi->Instance  */
-    SPI_Cmd(hspi->Instance, ENABLE);
-}
-
-#endif
-
-/*******************************************************************************
-* Function Name  : GPIO_Configuration
-* Description    : Configures the different GPIO ports.
-* Input          : None
-* Output         : None
-* Return         : None
-*******************************************************************************/
-#if 0
-void ENC28J60_GPIO_Configuration(void)
-{
-  GPIO_InitTypeDef GPIO_InitStructure;
-
-  /* Enable SCK, MOSI and MISO GPIO clocks */
-  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
-
-  /* Enable CS  GPIO clock */
-  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
-
-  GPIO_PinAFConfig(GPIOA, GPIO_PinSource5, GPIO_AF_hspi->Instance);
-  GPIO_PinAFConfig(GPIOA, GPIO_PinSource6, GPIO_AF_hspi->Instance);
-  GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_hspi->Instance);
-
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_25MHz;
-
-  /* SPI SCK pin configuration */
-  GPIO_InitStructure.GPIO_Pin = GPIO_PIN_3;
-  GPIO_Init(GPIOB, &GPIO_InitStructure);
-
-  /* SPI  MOSI pin configuration */
-  GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_7;
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
-
-  /* SPI MISO pin configuration */
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
-
-  /* Configure GPIO PIN for Chip select */
-  GPIO_InitStructure.GPIO_Pin = GPIO_PIN_4;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
-
-  /* Deselect : Chip Select high */
-  GPIO_SetBits(GPIOA, GPIO_PIN_4);
-}
-#endif
 
 void enc28j60_set_spi(SPI_HandleTypeDef *hspi_new)
 {
@@ -219,7 +154,7 @@ uint16_t enc28j60PhyReadH(uint8_t address)
 	// Set the right address and start the register read operation
 	enc28j60Write(MIREGADR, address);
 	enc28j60Write(MICMD, MICMD_MIIRD);
-	Delay(15);
+	HAL_Delay(15);
 
 	// wait until the PHY read completes
 	while(enc28j60Read(MISTAT) & MISTAT_BUSY);
@@ -249,7 +184,7 @@ void enc28j60PhyWrite(uint8_t address, uint16_t data)
         enc28j60Write(MIWRH, data>>8);
         // wait until the PHY write completes
         while(enc28j60Read(MISTAT) & MISTAT_BUSY){
-                Delay(15);
+        HAL_Delay(15);
         }
 }
 /*
