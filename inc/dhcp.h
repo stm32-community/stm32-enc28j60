@@ -1,24 +1,18 @@
-/*********************************************
- * vim:sw=8:ts=8:si:et
- * To use the above modeline in vim you must have "set modeline" in your .vimrc
- * Author: 
- * Copyright: GPL V2
+/*
+ * ENC28J60.h
  *
- * DHCP look-up functions based on the udp client
+ * Created on: Jun 4, 2024
+ * Author: dtneo
  *
- * Chip type : ATMEGA88/ATMEGA168/ATMEGA328p with ENC28J60
- *********************************************/
-//@{
+ * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
+ * It includes control register definitions, chip enable/disable macros, and configurations for delays and
+ * chip select (CS) handling.
+ */
+
 #ifndef DHCP_H
 #define DHCP_H
 
 #include "defines.h"
-
-// to use this you need to enable UDP_client in the file defines.h
-#if defined (UDP_client)
-
-#define DHCP_BOOTREQUEST 1
-#define DHCP_BOOTRESPONSE 2
 
 extern void dhcp_start(uint8_t *buf, uint8_t *macaddrin, uint8_t *ipaddrin,
                 uint8_t *maskin, uint8_t *gwipin, uint8_t *dhcpsvrin,
@@ -27,12 +21,8 @@ extern void dhcp_start(uint8_t *buf, uint8_t *macaddrin, uint8_t *ipaddrin,
 extern uint8_t dhcp_state( void );
 
 void dhcp_send(uint8_t *buf, uint8_t requestType);
-
 uint8_t check_for_dhcp_answer(uint8_t *buf,uint16_t plen);
-
 uint8_t have_dhcpoffer(uint8_t *buf,uint16_t plen);
 uint8_t have_dhcpack(uint8_t *buf,uint16_t plen);
 
-#endif /* UDP_client */
 #endif /* DHCP_H */
-//@}
