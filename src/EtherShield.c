@@ -16,7 +16,6 @@
 
 #define BUFFER_SIZE 400
 
-uint16_t plen;
 uint8_t hostname[]= "www.google.com";
 
 void ES_FullConnection(SPI_HandleTypeDef *hspi) {
@@ -51,7 +50,6 @@ void ES_enc28j60SpiInit(SPI_HandleTypeDef *hspi){
 //  ENC28J60_SPI1_Configuration();
 	enc28j60_set_spi(hspi);
 }
-
 
 /**
  * Initialise the ENC28J60 using default chip select pin

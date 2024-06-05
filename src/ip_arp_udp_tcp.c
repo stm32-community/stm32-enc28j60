@@ -21,15 +21,7 @@
 #include "net.h"
 #include "enc28j60.h"
 #include "ip_arp_udp_tcp.h"
-
-//uint8_t dest_ip[4] = {10, 0, 0, 17}; // Adresse IP de l'Orange pi zero 3 - ArmDebian
-//uint16_t dest_port = 10001;
-//uint16_t srcport = 10002;
-//uint8_t dstport_h = 0x27; // Partie haute du port 10001
-//uint8_t dstport_l = 0x11; // Partie basse du port 10001
-//uint8_t dip[] = {10, 0, 0, 17}; // Adresse IP de l'Orange pi zero 3 - ArmDebian
-//uint16_t dport = 514; // UDP Port  de l'Orange pi zero 3 - ArmDebian
-//uint16_t sport = 8;
+#include "UDPCommandHandler.h"
 
 #if ETHERSHIELD_DEBUG
 void ethershieldDebug(char *message) {
@@ -761,93 +753,95 @@ void client_ntp_request(uint8_t *buf,uint8_t *ntpip,uint8_t srcport)
   buf[UDP_CHECKSUM_L_P]=ck& 0xff;
   enc28j60PacketSend(90,buf);
 }
-// process the answer from the ntp server:
-// return 1 on sucessful processing of answer
-void client_ntp_process_answer(uint8_t *buf){
-  uint32_t time;
-  // copy time from the transmit time stamp field:
-  time=((uint32_t)buf[0x52]<<24)|((uint32_t)buf[0x53]<<16)|((uint32_t)buf[0x54]<<8)|((uint32_t)buf[0x55]);
-  //for the all paquet, this is where are the data:
-  //time=((uint32_t)buf[82] << 24) | ((uint32_t)buf[83] << 16) | ((uint32_t)buf[84] << 8) | (uint32_t)buf[85];
 
-  // Convert NTP timestamp to UNIX timestamp (seconds since 1970)
-  // by subtracting the seconds between 1900 and 1970.
-  // Note: This only takes into account the seconds part of the NTP timestamp and ignores fractional seconds.
-  if (time > 2208988800UL) {
-	  time -= 2208988800UL;
-  } else {
-      // Handle the case where the NTP timestamp is before the UNIX epoch (very unlikely, but for robustness)
-	  time = 0;
+/*
+ * This function processes the response from an NTP server and updates the RTC of the STM32 microcontroller.
+ * It extracts the NTP timestamp from the received buffer, converts it to a UNIX timestamp, and then
+ * updates the RTC with the current date and time.
+ */
+void client_ntp_process_answer(uint8_t *buf, uint16_t plen) {
+    uint32_t unix_timestamp;
 
-	    // Create structures for time and date
-	    RTC_TimeTypeDef sTime = {0};
-	    RTC_DateTypeDef sDate = {0};
+    // Extract the NTP timestamp (seconds since 1900)
+    unix_timestamp = ((uint32_t)buf[0x52] << 24) | ((uint32_t)buf[0x53] << 16) | ((uint32_t)buf[0x54] << 8) | (uint32_t)buf[0x55];
 
-	    // Calculate time components
-	    uint32_t seconds = time % 60;
-	    uint32_t minutes = (time / 60) % 60;
-	    uint32_t hours = (time / 3600) % 24;
-	    uint32_t days = time / 86400; // Total number of days since 1970
+    // Convert the NTP timestamp to UNIX timestamp (seconds since 1970)
+    // by subtracting the seconds between 1900 and 1970.
+    if (unix_timestamp > 2208988800UL) {
+        unix_timestamp -= 2208988800UL;
+    } else {
+        // Handle the case where the NTP timestamp is before the UNIX epoch (very unlikely, but for robustness)
+        unix_timestamp = 0;
+    }
 
-	    // The start of 1970 was a Thursday (day 4 of the week)
-	    uint32_t dayOfWeek = (4 + days) % 7 + 1; // 1 = Monday, ..., 7 = Sunday
+    // Create structures for time and date
+    RTC_TimeTypeDef sTime = {0};
+    RTC_DateTypeDef sDate = {0};
 
-	    // Determine the year
-	    uint32_t year = 1970;
-	    while (days >= 365) {
-	        if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) {
-	            if (days < 366) break;
-	            days -= 366;
-	        } else {
-	            if (days < 365) break;
-	            days -= 365;
-	        }
-	        year++;
-	    }
+    // Calculate the time components
+    uint32_t seconds = unix_timestamp % 60;
+    uint32_t minutes = (unix_timestamp / 60) % 60;
+    uint32_t hours = (unix_timestamp / 3600) % 24;
+    uint32_t days = unix_timestamp / 86400; // Total number of days since 1970
 
-	    // Determine the month and the day of the month
-	    uint32_t month_lengths[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-	    if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) {
-	        month_lengths[1] = 29; // February has 29 days in leap years
-	    }
+    // The start of 1970 was a Thursday (day 4 of the week)
+    uint32_t dayOfWeek = (4 + days) % 7 + 1; // 1 = Monday, ..., 7 = Sunday
 
-	    uint32_t month = 0;
-	    for (month = 0; month < 12; month++) {
-	        if (days < month_lengths[month]) {
-	            break;
-	        }
-	        days -= month_lengths[month];
-	    }
-	    month++; // months are 1-12
-	    uint32_t dayOfMonth = days + 1; // days are 1-31
+    // Determine the year
+    uint32_t year = 1970;
+    while (days >= 365) {
+        if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) {
+            if (days < 366) break;
+            days -= 366;
+        } else {
+            if (days < 365) break;
+            days -= 365;
+        }
+        year++;
+    }
 
-//	     Configure time
-	    sTime.Hours = hours;
-	    sTime.Minutes = minutes;
-	    sTime.Seconds = seconds;
-	    sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
-	    sTime.StoreOperation = RTC_STOREOPERATION_RESET;
+    // Determine the month and the day of the month
+    uint32_t month_lengths[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+    if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) {
+        month_lengths[1] = 29; // February has 29 days in leap years
+    }
 
-//	     Configure date
-	    sDate.WeekDay = dayOfWeek;
-	    sDate.Month = month;
-	    sDate.Date = dayOfMonth;
-	    sDate.Year = year - 1970; // Year in the RTC structure is the year since 1970
+    uint32_t month = 0;
+    for (month = 0; month < 12; month++) {
+        if (days < month_lengths[month]) {
+            break;
+        }
+        days -= month_lengths[month];
+    }
+    month++; // months are 1-12
+    uint32_t dayOfMonth = days + 1; // days are 1-31
 
-//	     Update the RTC
-	    HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-	    HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+    // Set the time
+    sTime.Hours = hours;
+    sTime.Minutes = minutes;
+    sTime.Seconds = seconds;
+    sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+    sTime.StoreOperation = RTC_STOREOPERATION_RESET;
 
-	    char timeStr[32]; // Adjusted size to hold formatted date and time
-	    sprintf(timeStr, "%02d/%02d/%04d %02d:%02d:%02d UTC",
-	            sDate.Date,
-	            sDate.Month,
-	            year,
-	            sTime.Hours,
-	            sTime.Minutes,
-	            sTime.Seconds);
-	    udpLog2("NTP indique la date suivante :", timeStr);
-  }
+    // Set the date
+    sDate.WeekDay = dayOfWeek;
+    sDate.Month = month;
+    sDate.Date = dayOfMonth;
+    sDate.Year = year - 1970; // Year in the RTC structure is the year since 1970
+
+    // Update the RTC
+    HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+    HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+
+    char timeStr[32]; // Adjusted size to hold formatted date and time
+    sprintf(timeStr, "%02d/%02d/%04d %02d:%02d:%02d UTC",
+            sDate.Date,
+            sDate.Month,
+            year,
+            sTime.Hours,
+            sTime.Minutes,
+            sTime.Seconds);
+    udpLog2("NTP indicates the following date and time:", timeStr);
 }
 #endif // NTP_client
 
@@ -912,6 +906,33 @@ void send_udp(uint8_t *buf,char *data,uint16_t datalen,uint16_t sport, uint8_t *
   send_udp_prepare(buf,sport, dip, dport);
   memcpy(&buf[UDP_DATA_P], data, datalen);
   send_udp_transmit(buf,datalen);
+}
+
+// Process UDP packets
+void udp_packet_process(uint8_t *buf, uint16_t plen) {
+    // Get the position of the data in the UDP packet
+    int data_pos = UDP_DATA_P;  // Use the correct constant for your context
+    uint8_t *data = &buf[data_pos];
+    uint16_t data_len = plen - data_pos;
+
+    // Convert the data to a string if necessary
+    char msg[data_len + 1];
+    memcpy(msg, data, data_len);
+    msg[data_len] = '\0';
+
+    // Log the received message for debugging
+    //udpLog2("Received UDP", msg);
+
+    // Iterate through the command table to find and execute the appropriate command
+    for (CommandMapping *cmd = commandTable; cmd->command != NULL; cmd++) {
+        if (strncmp(msg, cmd->command, strlen(cmd->command)) == 0) {
+            cmd->function();
+            return;
+        }
+    }
+
+    // If no matching command is found
+    udpLog2("Error", "Unexpected UDP message");
 }
 #endif // UDP_client
 
@@ -1420,12 +1441,13 @@ uint16_t packetloop_icmp_tcp(uint8_t * buf, uint16_t plen) {
   }
   #ifdef NTP_client
   if (buf[IP_PROTO_P] == IP_PROTO_UDP_V && buf[UDP_SRC_PORT_H_P] == 0 && buf[UDP_SRC_PORT_L_P] == 0x7b) {
-	  client_ntp_process_answer(UDP_DATA_P);
+	  client_ntp_process_answer(buf, plen);
+	  return(UDP_DATA_P);
   }
   #endif // NTP_client
   #ifdef DNS_client
   if (buf[IP_PROTO_P] == IP_PROTO_UDP_V && buf[UDP_SRC_PORT_H_P] == 0 && buf[UDP_SRC_PORT_L_P] == 53) {
-    return (UDP_DATA_P);
+    return (buf);
   }
   #endif // NTP_client
   if (buf[IP_PROTO_P] == IP_PROTO_ICMP_V && buf[ICMP_TYPE_P] == ICMP_TYPE_ECHOREQUEST_V) {
@@ -1436,6 +1458,10 @@ uint16_t packetloop_icmp_tcp(uint8_t * buf, uint16_t plen) {
     make_echo_reply_from_request(buf, plen);
     ES_PingCallback();
     return (0);
+  }
+  if (buf[IP_PROTO_P] == IP_PROTO_UDP_V) {
+      udp_packet_process(buf, plen);
+	  return (UDP_DATA_P);
   }
   if (plen < 54 && buf[IP_PROTO_P] != IP_PROTO_TCP_V) {
     // smaller than the smallest TCP packet and not tcp port

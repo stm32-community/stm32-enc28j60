@@ -161,7 +161,7 @@ void client_http_post(char *urlbuf, char *hoststr, char *additionalheaderline, c
 
 #ifdef NTP_client
 void client_ntp_request(uint8_t *buf,uint8_t *ntpip,uint8_t srcport);
-void client_ntp_process_answer(uint8_t *buf);
+void client_ntp_process_answer(uint8_t *buf, uint16_t plen);
 #endif
 
 #ifdef UDP_client
@@ -178,6 +178,7 @@ void send_udp_transmit(uint8_t *buf,uint16_t datalen);
 
 // send_udp sends via gwip, you must call client_set_gwip at startup, datalen must be less than 220 bytes
 void send_udp(uint8_t *buf,char *data,uint16_t datalen,uint16_t sport, uint8_t *dip, uint16_t dport);
+void udp_packet_process(uint8_t *buf, uint16_t plen);
 #endif          // UDP_client
 
 
