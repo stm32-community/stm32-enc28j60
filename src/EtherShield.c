@@ -20,7 +20,7 @@ void ES_FullConnection(SPI_HandleTypeDef *hspi) {
     enc28j60Init(macaddrin);
 
     // Configure the ENC28J60 clock
-    enc28j60Write(ECOCON, 3 & 0x7);
+    enc28j60clkout(3);
 
     // Configure the ENC28J60 PHY LEDs
     enc28j60PhyWrite(PHLCON, 0x3880);

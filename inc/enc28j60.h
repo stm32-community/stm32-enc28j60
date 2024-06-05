@@ -282,6 +282,7 @@ void enc28j60SetBank(uint8_t address);
 uint8_t enc28j60Read(uint8_t address);
 void enc28j60Write(uint8_t address, uint8_t data);
 void enc28j60PhyWrite(uint8_t address, uint16_t data);
+static void enc28j60PhyWriteWord(uint8_t address, uint16_t data);
 void enc28j60clkout(uint8_t clk);
 void enc28j60SpiInit(void);
 void enc28j60Init(uint8_t* macaddr);
