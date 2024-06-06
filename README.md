@@ -6,12 +6,17 @@ Search terms for `ENC28J60/HR911105A datasheet` and `enc28j60 schematic` for det
 
 About Cmake, this code was ported using [stm32-cmake](https://github.com/ObKo/stm32-cmake) and [stm32-base](https://github.com/DVALight/stm32-base)
 
-## UDP Command Hnadler
+### UDP Command Hnadler
 Domotics !
 
-## RTC
+### RTC
 Active the code on file [`inc/define.h`](inc/defines.h).
 Add the code needed in main.c `between USER code begin` and `User code end` of the section RTC created by your STM32cubeIDE, you should find examples files in this repo.
+
+### Logs functions
+via udp
+via html
+...
 
 ## MCU tested (please share your results for update this list):
 - STM32F091xC (v2 Tested only on sending UDP packets)
@@ -21,7 +26,8 @@ Add the code needed in main.c `between USER code begin` and `User code end` of t
 - STM32F407 (v3 complete network interface)
 - STM32F411 (will be test current 2024 for v3 complete network interface)
 
-# News on branch V3
+## News on branch V3
+// Contact of this changes @Dtneo
 
 Quick Start for Full Network Connection
 To quickly set up a complete network connection (DHCP, DNS, Gateway, etc.), use the following function:
@@ -31,7 +37,7 @@ Call this fonction just before the while and ping your device !
 and in your while think to use this for treat everything from your network :
 ` ES_ProcessWebPacket();`
 
-A lot of code was clear, if any function deseaper please create a Issue
+A lot of code was delete, few functions were added, and a lot of AI comment was generated. If any function deseaper please create a Issue
 
 
 # How to use this project
