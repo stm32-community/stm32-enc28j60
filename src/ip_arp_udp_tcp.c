@@ -1,22 +1,14 @@
-/*********************************************
- * vim:sw=8:ts=8:si:et
- * To use the above modeline in vim you must have "set modeline" in your .vimrc
+/*
+ * ip_arp_udp_tcp.c
  *
- * Author: Guido Socher 
- * Copyright: GPL V2
- * See http://www.gnu.org/licenses/gpl.html
+ * Created on: Jun 4, 2024
+ * Author: dtneo
  *
- * IP, Arp, UDP and TCP functions.
- *
- * The TCP implementation uses some size optimisations which are valid
- * only if all data can be sent in one single packet. This is however
- * not a big limitation for a microcontroller as you will anyhow use
- * small web-pages. The web server must send the entire web page in one
- * packet. The client "web browser" as implemented here can also receive
- * large pages.
- *
- * Chip type           : ATMEGA88/168/328 with ENC28J60
- *********************************************/
+ * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
+ * It includes control register definitions, chip enable/disable macros, and configurations for delays and
+ * chip select (CS) handling.
+ */
+
 #include "defines.h"
 #include "net.h"
 #include "enc28j60.h"

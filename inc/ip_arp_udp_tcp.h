@@ -1,17 +1,14 @@
-/*********************************************
- * vim:sw=8:ts=8:si:et
- * To use the above modeline in vim you must have "set modeline" in your .vimrc
- * Author: Guido Socher 
- * Copyright: GPL V2
+/*
+ * ip_arp_udp_tcp.h
  *
- * IP/ARP/UDP/TCP functions
+ * Created on: Jun 4, 2024
+ * Author: dtneo
  *
- * Chip type           : ATMEGA88 with ENC28J60
- *********************************************/
- /*********************************************
- * Modified: nuelectronics.com -- Ethershield for Arduino
- *********************************************/
-//@{
+ * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
+ * It includes control register definitions, chip enable/disable macros, and configurations for delays and
+ * chip select (CS) handling.
+ */
+
 #ifndef IP_ARP_UDP_TCP_H
 #define IP_ARP_UDP_TCP_H
 
