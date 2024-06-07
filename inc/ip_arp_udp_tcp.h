@@ -81,48 +81,6 @@ void client_tcp_set_serverip(uint8_t *ipaddr);
 
 
 #ifdef TCP_client
-// To use the tcp client you need to:
-//
-// Declare a callback function to get the result (tcp data from the server):
-//
-// uint8_t your_client_tcp_result_callback(uint8_t fd, uint8_t statuscode,uint16_t data_start_pos_in_buf, uint16_t len_of_data){...your code;return(close_tcp_session);}
-//
-// statuscode=0 means the buffer has valid data, otherwise len and pos_in_buf
-// are invalid. That is: do to use data_start_pos_in_buf and len_of_data
-// if statuscode!=0.
-//
-// This callback gives you access to the TCP data of the first
-// packet returned from the server. You should aim to minimize the server
-// output such that this will be the only packet.
-//
-// close_tcp_session=1 means close the session now. close_tcp_session=0
-// read all data and leave it to the other side to close it. 
-// If you connect to a web server then you want close_tcp_session=0.
-// If you connect to a modbus/tcp equipment then you want close_tcp_session=1
-//
-// Declare a callback function to be called in order to fill in the 
-//
-// request (tcp data sent to the server):
-// uint16_t your_client_tcp_datafill_callback(uint8_t fd){...your code;return(len_of_data_filled_in);}
-//
-// Now call: 
-// fd=client_tcp_req(&your_client_tcp_result_callback,&your_client_tcp_datafill_callback,portnumber);
-//
-// fd is a file descriptor like number that you get back in the fill and result
-// function so you know to which call of client_tcp_req this callback belongs.
-//
-// You can not start different clients (e.g modbus and web) at the
-// same time but you can start them one after each other. That is
-// when the request has timed out or when the result_callback was
-// executed then you can start a new one. The fd makes it still possible to
-// distinguish in the callback code the different types you started.
-//
-// Note that you might never get called back if the other side does
-// not answer. A timer would be needed to recongnize such a condition.
-//
-// We use callback functions because that is the best implementation
-// given the fact that we have very little RAM memory.
-//
 uint8_t client_tcp_req(uint8_t (*result_callback)(uint8_t fd,uint8_t statuscode,uint16_t data_start_pos_in_buf, uint16_t len_of_data),uint16_t (*datafill_callback)(uint8_t fd),uint16_t port);
 void tcp_client_send_packet(uint8_t *buf,uint16_t dest_port, uint16_t src_port, uint8_t flags, uint8_t max_segment_size, 
 	uint8_t clear_seqck, uint16_t next_ack_num, uint16_t dlength, uint8_t *dest_mac, uint8_t *dest_ip);
