@@ -39,14 +39,19 @@ static inline void uDelay(uint32_t useconds) {
 #	define ETHERNET_CS_DELAY_PROC Delay(ETHERNET_CS_DELAY)
 #endif
 
-#define disableChip  ETHERNET_CS_GPIO->BSRR = ETHERNET_CS_PIN;\
-	ETHERNET_LED_GPIO->BSRR = ETHERNET_LED_PIN << 16;\
-	ETHERNET_CS_DELAY_PROC;
-#define enableChip   ETHERNET_CS_GPIO->BSRR = ETHERNET_CS_PIN<<16;\
-	ETHERNET_LED_GPIO->BSRR = ETHERNET_LED_PIN;\
-	ETHERNET_CS_DELAY_PROC;
-//#define disableChip  {}
-//#define enableChip   {}
+/** if software chip select is wanted **/
+//#define disableChip  ETHERNET_CS_GPIO->BSRR = ETHERNET_CS_PIN;\
+//	ETHERNET_LED_GPIO->BSRR = ETHERNET_LED_PIN << 16;\
+//	ETHERNET_CS_DELAY_PROC;
+//#define enableChip   ETHERNET_CS_GPIO->BSRR = ETHERNET_CS_PIN<<16;\
+//	ETHERNET_LED_GPIO->BSRR = ETHERNET_LED_PIN;\
+
+/** if hardware chip select is wanted
+* (don't forget to use "Hardware NSS Output Signal" in .ioc and define ETHERNET_CS_PIN and ETHERNET_CS_GPIO to the right pin)
+* (ETHERNET_CS_DELAY becomes unused)
+*/
+#define disableChip __HAL_SPI_DISABLE(hspi);
+#define enableChip ;
 
 
 // ENC28J60 Control Registers
