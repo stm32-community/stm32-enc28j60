@@ -12,7 +12,7 @@
 #ifndef __ENC28J60_H
 #define __ENC28J60_H
 
-#include "defines.h"
+#include "main.h"
 
 #ifdef CS_Only
 #if ETHERNET_CS_DELAY >= 10
@@ -31,7 +31,7 @@
 
 #ifdef NSS_OutputSignal
 #define disableChip __HAL_SPI_DISABLE(hspi);
-#define enableChip __HAL_SPI_ENABLE(hspi);
+#define enableChip;
 #endif
 
 // ENC28J60 Control Registers
@@ -258,16 +258,16 @@
 // the entire available packet buffer space is allocated
 //
 // start with RX buf at 0/
-#define RXSTART_INIT     0x0
+#define RXSTART_INIT 0x0
 // RX buffer end
-#define RXSTOP_INIT      (0x1FFF-0x0600-1)
+#define RXSTOP_INIT (0x1FFF-0x0600-1)
 // start TX buffer at 0x1FFF-0x0600, place for one full ethernet frame (~1500 bytes)
-#define TXSTART_INIT     (0x1FFF-0x0600)
+#define TXSTART_INIT (0x1FFF-0x0600)
 // stop TX buffer at end of mem
-#define TXSTOP_INIT      0x1FFF
+#define TXSTOP_INIT 0x1FFF
 
 // max frame length which the controller will accept:
-#define        MAX_FRAMELEN        1500        // (note: maximum ethernet frame length would be 1518)
+#define MAX_FRAMELEN 1500        // (note: maximum ethernet frame length would be 1518)
 //#define MAX_FRAMELEN     600
 
 void enc28j60_set_spi(SPI_HandleTypeDef *hspi_new);

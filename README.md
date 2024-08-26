@@ -24,7 +24,7 @@ via html
 - STM32F103xB (v2 Tested only on sending UDP packets)
 - STM32F401VE (v2 Tested only on sending UDP packets)
 - STM32F407 (v3 complete network interface)
-- STM32F411 (will be test current 2024 for v3 complete network interface)
+- STM32F446 (v3 complete network interface)
 
 ## News on branch V3
 // Contact of this changes @Dtneo

@@ -7,6 +7,7 @@
 
 #include "timers.h"
 #include <stdbool.h>
+#include <stdio.h>
 #include "LogManager.h"
 
 // Counter for the number of timer interrupts

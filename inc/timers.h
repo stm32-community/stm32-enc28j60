@@ -12,9 +12,6 @@
 
 extern TIM_HandleTypeDef htim4;
 
-
-extern uint8_t TIM4Flag; // Flag for renew the networt
-
 void timerLog(TIM_HandleTypeDef *htim);
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 void generalTimersInit();

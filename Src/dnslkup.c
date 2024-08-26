@@ -1,40 +1,35 @@
-/*********************************************
- * vim:sw=8:ts=8:si:et
- * To use the above modeline in vim you must have "set modeline" in your .vimrc
+/*
+ * dnslkup.C
  *
- * Author: Guido Socher 
- * Copyright: GPL V2
- * See http://www.gnu.org/licenses/gpl.html
+ * Created on: Jun 4, 2024
+ * Author: dtneo
  *
- * DNS look-up functions based on the udp client
- *
- *********************************************/
+ * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
+ * It includes control register definitions, chip enable/disable macros, and configurations for delays and
+ * chip select (CS) handling.
+ */
+
 #include "defines.h"
 #include "net.h"
 #include "ip_arp_udp_tcp.h"
 
-#if defined (UDP_client) 
 static uint8_t dnstid_l=0; // a counter for transaction ID
 // src port high byte must be a a0 or higher:
-#define DNSCLIENT_SRC_PORT_H 0xe0 
 uint8_t dnsip[]={8,8,8,8}; // the google public DNS. To be used if DNS server is not set by user.
 static uint8_t haveDNSanswer=0;
 static uint8_t dns_answerip[4];
 static uint8_t dns_ansError=0;
 
 
-uint8_t dnslkup_haveanswer(void)
-{       
+uint8_t dnslkup_haveanswer(void) {
         return(haveDNSanswer);
 }
 
-uint8_t dnslkup_get_error_info(void)
-{       
+uint8_t dnslkup_get_error_info(void) {
         return(dns_ansError);
 }
 
-uint8_t *dnslkup_getip()
-{       
+uint8_t *dnslkup_getip() {
         return(dns_answerip);
 }
 
@@ -43,8 +38,7 @@ uint8_t *dnslkup_getip()
 // and http://www.ietf.org/rfc/rfc1035.txt
 //
 //void dnslkup_request(uint8_t *buf,const prog_char *progmem_hostname)
-void dnslkup_request(uint8_t *buf, uint8_t  *domainName)
-{
+void dnslkup_request(uint8_t *buf, uint8_t  *domainName) {
         uint8_t i,lenpos,lencnt;
         char c;
         haveDNSanswer=0;
@@ -103,7 +97,7 @@ void dnslkup_request(uint8_t *buf, uint8_t  *domainName)
 // process the answer from the dns server:
 // return 1 on sucessful processing of answer.
 // We set also the variable haveDNSanswer
-uint8_t udp_client_check_for_dns_answer(uint8_t *buf,uint16_t plen){
+uint8_t udp_client_check_for_dns_answer(uint8_t *buf,uint16_t plen) {
         uint8_t j,i;
         if (plen<70){
                 return(0);
@@ -184,8 +178,7 @@ uint8_t udp_client_check_for_dns_answer(uint8_t *buf,uint16_t plen){
 
 // set DNS server to be used for lookups.
 // defaults to Google DNS server if not called.
-void dnslkup_set_dnsip(uint8_t *dnsipaddr)
-{
+void dnslkup_set_dnsip(uint8_t *dnsipaddr) {
         uint8_t i=0;
         while(i<4){
                 dnsip[i]=dnsipaddr[i];
@@ -193,7 +186,50 @@ void dnslkup_set_dnsip(uint8_t *dnsipaddr)
         }
 }
 
-#endif
+// Perform all processing to resolve a hostname to IP address.
+// Returns 1 for successful name resolution, 0 otherwise
+uint8_t resolveHostname(uint8_t *buf, uint16_t buffer_size, uint8_t *hostname) {
+    uint16_t dat_p;
+    int plen = 0;
+    long lastDnsRequest = HAL_GetTick();
+    uint8_t dns_state = DNS_STATE_INIT;
+    bool gotAddress = false;
+    uint8_t dnsTries = 3;  // After 3 attempts fail gracefully
 
-/* end of dnslkup.c */
+    while (!gotAddress) {
+        plen = enc28j60PacketReceive(buffer_size, buf);
+        dat_p = handle_AllPacket(buf, plen);
 
+        if (dat_p == 0) {
+            if (client_waiting_gw()) {
+                continue;
+            }
+
+            if (dns_state == DNS_STATE_INIT) {
+                dns_state = DNS_STATE_REQUESTED;
+                lastDnsRequest = HAL_GetTick();
+                dnslkup_request(buf, hostname);
+                continue;
+            }
+
+            if (dns_state != DNS_STATE_ANSWER) {
+                if (HAL_GetTick() > (lastDnsRequest + 60000L)) {
+                    if (--dnsTries <= 0) {
+                        return 0;  // Failed to resolve address
+                    }
+                    dns_state = DNS_STATE_INIT;
+                    lastDnsRequest = HAL_GetTick();
+                }
+                continue;
+            }
+        } else {
+            if (dns_state == DNS_STATE_REQUESTED && udp_client_check_for_dns_answer(buf, plen)) {
+                dns_state = DNS_STATE_ANSWER;
+                client_tcp_set_serverip(dnslkup_getip());
+                gotAddress = true;
+            }
+        }
+    }
+
+    return 1;
+}

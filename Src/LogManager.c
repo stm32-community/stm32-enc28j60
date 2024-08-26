@@ -29,14 +29,14 @@ void add_log(const char *log) {
 }
 
 // Fonction pour récupérer les logs en format HTML
-void get_logs(char *buffer, size_t size) {
-    size_t offset = 0;
-    for (int i = 0; i < MAX_LOGS; i++) {
-        int index = (log_index + i) % MAX_LOGS;
-        offset += snprintf(buffer + offset, size - offset, "%s\n", logs[index]);
-        if (offset >= size) break;
-    }
-}
+//void get_logs(char *buffer, size_t size) {
+//    size_t offset = 0;
+//    for (int i = 0; i < MAX_LOGS; i++) {
+//        int index = (log_index + i) % MAX_LOGS;
+//        offset += snprintf(buffer + offset, size - offset, "%s\n", logs[index]);
+//        if (offset >= size) break;
+//    }
+//}
 
 // Function to log messages based on log type
 void logMessage(LogType type, const char *message) {

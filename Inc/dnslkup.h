@@ -1,21 +1,19 @@
-/*********************************************
- * vim:sw=8:ts=8:si:et
- * To use the above modeline in vim you must have "set modeline" in your .vimrc
- * Author: Guido Socher 
- * Copyright: GPL V2
+/*
+ * dnslkup.h
  *
- * DNS look-up functions based on the udp client
+ * Created on: Jun 4, 2024
+ * Author: dtneo
  *
- * Chip type           : ATMEGA88/ATMEGA168/ATMEGA328p with ENC28J60
- *********************************************/
-//@{
+ * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
+ * It includes control register definitions, chip enable/disable macros, and configurations for delays and
+ * chip select (CS) handling.
+ */
+
 #ifndef DNSLKUP_H
 #define DNSLKUP_H
 
-#include "defines.h"
-
-// to use this you need to enable UDP_client in the file defines.h
-#if defined (UDP_client)
+#include "main.h"
+//#include "defines.h"
 
 // look-up a hostname (you should check client_waiting_gw() before calling this function):
 extern void dnslkup_request(uint8_t *buf, uint8_t *hostname);
@@ -35,6 +33,6 @@ extern uint8_t *dnslkup_getip(void);
 // set DNS server to be used for lookups.
 extern void dnslkup_set_dnsip(uint8_t *dnsipaddr);
 
-#endif /* UDP_client */
+uint8_t resolveHostname(uint8_t *buf, uint16_t buffer_size, uint8_t *hostname );
+
 #endif /* DNSLKUP_H */
-//@}

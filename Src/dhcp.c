@@ -48,7 +48,7 @@ static uint8_t dhcptid_l = 0;               // Counter for transaction ID
 static uint8_t dhcpState = DHCP_STATE_INIT; // DHCP state
 
 // Pointers to values we have set or need to set
-static uint8_t *macaddr;    // MAC address pointer
+static uint8_t *macaddrDHCP;    // MAC address pointer
 uint8_t *dhcpip;            // DHCP IP address pointer
 uint8_t *dhcpmask;          // DHCP subnet mask pointer
 uint8_t *dhcpserver;        // DHCP server address pointer
@@ -90,9 +90,9 @@ uint8_t dhcp_state(void) {
 // Send DHCPREQUEST
 // Wait for DHCPACK
 // All configured
-void dhcp_start(uint8_t *buf, uint8_t *macaddrin, uint8_t *ipaddrin, uint8_t *maskin,
+void dhcp_start(uint8_t *buf, uint8_t *macaddrDHCPin, uint8_t *ipaddrin, uint8_t *maskin,
                 uint8_t *gwipin, uint8_t *dhcpsvrin, uint8_t *dnssvrin) {
-    macaddr = macaddrin;
+    macaddrDHCP = macaddrDHCPin;
     dhcpip = ipaddrin;
     dhcpmask = maskin;
     gwaddr = gwipin;
@@ -114,8 +114,8 @@ void dhcp_start(uint8_t *buf, uint8_t *macaddrin, uint8_t *ipaddrin, uint8_t *ma
     // Set a unique hostname, use DHCP_HOSTNAME- plus last octet of MAC address
     strncpy(hostname, DHCP_HOSTNAME, HOSTNAME_LEN);
     hostname[HOSTNAME_LEN] = '-';
-    hostname[HOSTNAME_LEN + 1] = 'A' + (macaddr[5] >> 4);
-    hostname[HOSTNAME_LEN + 2] = 'A' + (macaddr[5] & 0x0F);
+    hostname[HOSTNAME_LEN + 1] = 'A' + (macaddrDHCP[5] >> 4);
+    hostname[HOSTNAME_LEN + 2] = 'A' + (macaddrDHCP[5] & 0x0F);
     hostname[HOSTNAME_LEN + 3] = '\0';
 
     // Enable reception of broadcast packets
@@ -147,13 +147,13 @@ void dhcp_send(uint8_t *buf, uint8_t requestType) {
     send_udp_prepare(buf, (DHCPCLIENT_SRC_PORT_H << 8) | (dhcptid_l & 0xff), dhcpip, DHCP_DEST_PORT);
 
     // Set Ethernet source and destination MAC addresses
-    memcpy(buf + ETH_SRC_MAC, macaddr, 6);
+    memcpy(buf + ETH_SRC_MAC, macaddrDHCP, 6);
     memset(buf + ETH_DST_MAC, 0xFF, 6);
 
     // Set IP total length, protocol, and destination
     buf[IP_TOTLEN_L_P] = 0x82;
     buf[IP_PROTO_P] = IP_PROTO_UDP_V;
-    memset(buf + IP_DST_P, 0xFF, 4);
+    memset(buf + IP_DST_IP_P, 0xFF, 4);
 
     // Set UDP source and destination ports
     buf[UDP_DST_PORT_L_P] = DHCP_SRC_PORT;
@@ -179,7 +179,7 @@ void dhcp_send(uint8_t *buf, uint8_t requestType) {
     memset(dhcpPtr->yiaddr, 0, 4);
 
     // 28-43: chaddr (16)
-    memcpy(dhcpPtr->chaddr, macaddr, 6);
+    memcpy(dhcpPtr->chaddr, macaddrDHCP, 6);
 
     // Options defined as option, length, value
     bufPtr = buf + UDP_DATA_P + sizeof(dhcpData);
@@ -198,7 +198,7 @@ void dhcp_send(uint8_t *buf, uint8_t requestType) {
     addToBuf(61);    // Option: Client Identifier
     addToBuf(7);     // Length: 7
     addToBuf(0x01);  // Hardware type: Ethernet
-    for (int i = 0; i < 6; i++) addToBuf(macaddr[i]);
+    for (int i = 0; i < 6; i++) addToBuf(macaddrDHCP[i]);
 
     // Host name Option
     addToBuf(12);             // Option: Host Name
@@ -321,5 +321,47 @@ uint8_t have_dhcpack(uint8_t *buf, uint16_t plen) {
 
     // Return 2 to indicate DHCPACK processed
     return 2;
+}
+
+uint8_t allocateIPAddress(uint8_t *buf, uint16_t buffer_size, uint8_t *mymac, uint16_t myport, uint8_t *myip, uint8_t *mynetmask, uint8_t *gwip, uint8_t *dnsip, uint8_t *dhcpsvrip) {
+    uint16_t dat_p;
+    int plen = 0;
+    long lastDhcpRequest = HAL_GetTick();
+    uint8_t dhcpState = 0;
+    bool gotIp = false;
+    uint8_t dhcpTries = 10;
+
+    dhcp_start(buf, mymac, myip, mynetmask, gwip, dnsip, dhcpsvrip);
+
+    while (!gotIp) {
+        plen = enc28j60PacketReceive(buffer_size, buf);
+        dat_p = handle_AllPacket(buf, plen);
+
+        if (dat_p == 0) {
+            check_for_dhcp_answer(buf, plen);
+            dhcpState = dhcp_state();
+
+            if (dhcpState != DHCP_STATE_OK) {
+                if (HAL_GetTick() > (lastDhcpRequest + 10000L)) {
+                    lastDhcpRequest = HAL_GetTick();
+                    if (--dhcpTries <= 0) {
+                        return 0;
+                    }
+                    dhcp_start(buf, mymac, myip, mynetmask, gwip, dnsip, dhcpsvrip);
+                }
+            } else if (!gotIp) {
+                gotIp = true;
+
+                init_ip_arp_udp_tcp(mymac, myip, myport);
+                client_set_gwip(gwip);
+
+#ifdef DNS_client
+                dnslkup_set_dnsip(dnsip);
+#endif
+            }
+        }
+    }
+
+    return 1;
 }
 /* end of dhcp.c */

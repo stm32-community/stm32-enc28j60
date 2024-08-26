@@ -1,4 +1,4 @@
-/*
+ /*
  * RTC.c
  *
  * Created on: Jun 3, 2024
@@ -9,7 +9,6 @@
  * time from the RTC and formats it into a human-readable string for logging purposes.
  */
 
-#include "main.h"
 #include "RTC.h"
 
 // Function to obtain the current date and time from the RTC

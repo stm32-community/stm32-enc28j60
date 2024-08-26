@@ -12,7 +12,17 @@
 #ifndef WEBSRV_HELP_FUNCTIONS_H
 #define WEBSRV_HELP_FUNCTIONS_H
 
-#include "defines.h"
+#include "main.h"
+#include "net.h"
+
+
+uint16_t send_logs_page(uint8_t *buf);
+uint16_t send_test_page(uint8_t *buf);
+void www_server_reply(uint8_t *buf, uint16_t dlen, tcp_connection_t *tcp_conn);
+uint16_t www_client_internal_datafill_callback(uint8_t fd);
+uint8_t www_client_internal_result_callback(uint8_t fd, uint8_t statuscode, uint16_t datapos, uint16_t len_of_data);
+void client_http_get(char *urlbuf, char *urlbuf_varpart, char *hoststr, void (*callback)(uint8_t,uint16_t,uint16_t));
+void client_http_post(char *urlbuf, char *hoststr, char *additionalheaderline, char *method, char *postval,void (*callback)(uint8_t,uint16_t));
 
 // Function declarations
 
@@ -56,5 +66,7 @@ uint8_t parse_ip(uint8_t *bytestr, char *str);
  * @param base The numerical base for conversion (e.g., 10 for decimal).
  */
 void mk_net_str(char *resultstr, uint8_t *bytestr, uint8_t len, char separator, uint8_t base);
+
+void get_logs(char *buffer, size_t size);
 
 #endif /* WEBSRV_HELP_FUNCTIONS_H */

@@ -9,6 +9,14 @@
 
 #define BUFFER_SIZE 400
 
+#define DHCP_BUFFER_SIZE 300
+#define DNS_BUFFER_SIZE 200
+#define NTP_BUFFER_SIZE 150
+
+uint8_t bufDHCP[DHCP_BUFFER_SIZE];
+uint8_t bufDNS[DNS_BUFFER_SIZE];
+uint8_t bufNTP[NTP_BUFFER_SIZE];
+
 uint8_t hostname[] = "www.google.com";
 
 // Function to initialize and establish a full connection
@@ -28,33 +36,74 @@ void ES_FullConnection(SPI_HandleTypeDef *hspi) {
     enc28j60PhyWrite(PHLCON, 0x3476);
 
     // Allocate IP address via DHCP
-    uint8_t bufDHCP[BUFFER_SIZE];
     allocateIPAddress(bufDHCP, BUFFER_SIZE, macaddrin, 80, ipaddrin, maskin, gwipin, dnssvrin, dhcpsvrin);
 
     // Set the gateway IP for the client
     client_set_gwip(gwipin);
 
     // Resolve the DNS hostname
-    uint8_t bufDNS[BUFFER_SIZE];
     dnslkup_request(bufDNS, domainName);
     udp_client_check_for_dns_answer(bufDNS, plen);
     dnslkup_set_dnsip(dnsipaddr);
     resolveHostname(bufDNS, BUFFER_SIZE, hostname);
 
     // Send NTP request to get the current time
-    uint8_t bufNTP[BUFFER_SIZE];
     client_ntp_request(bufNTP, ntpip, 123);
+
+
 
     // Log the success of the full connection setup
     udpLog2("ES_FullConnection", "WORKS!");
+
+}
+
+// Function to initialize and establish a full connection
+void ES_RenewCo() {
+    // Allocate IP address via DHCP
+    allocateIPAddress(bufDHCP, BUFFER_SIZE, macaddrin, 80, ipaddrin, maskin, gwipin, dnssvrin, dhcpsvrin);
+
+    // Set the gateway IP for the client
+    client_set_gwip(gwipin);
+
+    // Resolve the DNS hostname
+    dnslkup_request(bufDNS, domainName);
+    udp_client_check_for_dns_answer(bufDNS, plen);
+    dnslkup_set_dnsip(dnsipaddr);
+    resolveHostname(bufDNS, BUFFER_SIZE, hostname);
+
+    // Send NTP request to get the current time
+    client_ntp_request(bufNTP, ntpip, 123);
+
+    // Log the success of the full connection setup
+    udpLog2("ES_RenewCo", "WORKS!");
 }
 
 // Function to process incoming web packets
 void ES_ProcessWebPacket() {
     static uint8_t packet[500];
-    packetloop_icmp_tcp(packet, enc28j60PacketReceive(500, packet));
+    handle_AllPacket(packet, enc28j60PacketReceive(500, packet));
 }
 
+// Function to process incoming web packets
+void ES_ProcessWebPacketFilter() {
+//	enc28j60SetBank(ERXFCON);
+//	write_control_register(0x18, 0b10100001);
+//    enc28j60WriteOp(ENC28J60_BIT_FIELD_SET, EIE, EIE_INTIE|EIE_PKTIE);
+//    enc28j60WriteOp(ENC28J60_BIT_FIELD_CLR, EIR, EIR_PKTIF);
+    static uint8_t packet[500];
+    uint16_t len = enc28j60PacketReceive(500, packet);
+    if (len > 0) {
+        handle_AllPacket(packet, len);
+    }
+    handle_AllPacket(packet, enc28j60PacketReceive(500, packet));
+}
+
+
+void ES_init_network() {
+    init_ip_arp_udp_tcp(macaddrin, ipaddrin, 80);
+    initialize_tcp_sequence_number();
+    init_tcp_connections();
+}
 /**
  * Initialise SPI, separate from main initialisation so that
  * multiple SPI devices can be used together
@@ -223,10 +272,6 @@ uint16_t ES_fill_tcp_data(uint8_t *buf,uint16_t pos, const char *s){
 	return fill_tcp_data(buf,pos, s);
 }
 
-uint16_t ES_fill_tcp_data_len(uint8_t *buf,uint16_t pos, const char *s, uint16_t len ){
-	return fill_tcp_data_len(buf,pos, s, len);
-}
-
 void ES_www_server_reply(uint8_t *buf,uint16_t dlen) {
 	www_server_reply(buf,dlen);
 }
@@ -305,11 +350,9 @@ uint8_t ES_packetloop_icmp_checkreply(uint8_t *buf,uint8_t *ip_monitoredhost) {
 }
 #endif // PING_client
 
-#ifdef WOL_client
 void ES_send_wol(uint8_t *buf,uint8_t *wolmac) {
 	send_wol(buf,wolmac);
 }
-#endif // WOL_client
 
 
 #ifdef FROMDECODE_websrv_help

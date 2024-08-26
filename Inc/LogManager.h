@@ -1,7 +1,7 @@
 #ifndef LOGMANAGER_H
 #define LOGMANAGER_H
 
-#include "defines.h"
+#include "main.h"
 
 // Enumeration for log types
 typedef enum {
@@ -12,6 +12,9 @@ typedef enum {
 } LogType;
 
 // Function prototypes
+void ethershieldDebug(char *message);
+void udpLog2(char* alerte, char* text);
+void add_log(const char *log);
 void logMessage(LogType type, const char *message);
 void initLogManager(LogType type);
 

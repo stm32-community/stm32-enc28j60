@@ -9,7 +9,8 @@
 #define INC_RTC_H_
 
 #include "main.h"
-#include "defines.h"
+//#include "defines.h"
+
 
 typedef struct {
     uint8_t day;
