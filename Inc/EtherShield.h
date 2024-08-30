@@ -1,36 +1,26 @@
-/*
-  EHTERSHIELD_H library for Arduino etherShield
-  Copyright (c) 2008 Xing Yu.  All right reserved.
-
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
-
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*/
+/**
+ * @file EtherShield.h
+ * @brief Header file containing definitions and macros for interfacing with the ENC28J60 Ethernet controller.
+ *
+ * This file includes control register definitions, chip enable/disable macros, and configurations for delays
+ * and chip select (CS) handling.
+ *
+ * @note For more information, refer to the `license.md` file located at the root of the project.
+ */
 
 #ifndef ETHERSHIELD_H
 #define ETHERSHIELD_H
 
-#include "stm32includes.h"
-
-#define bool _Bool
-#define TRUE 1
-#define FALSE 0
-
-#include <inttypes.h>
+#include "main.h"
+#include "defines.h"
 #include "enc28j60.h"
-#include "ip_arp_udp_tcp.h"
 #include "net.h"
 
+void ES_FullConnection();
+void ES_RenewCo();
+void ES_ProcessWebPacket();
+void ES_ProcessWebPacketFilter();
+void ES_init_network();
 void ES_enc28j60SpiInit( SPI_HandleTypeDef *hspi );
 void ES_enc28j60Init( uint8_t* macaddr);
 void ES_enc28j60clkout(uint8_t clk);
@@ -76,7 +66,6 @@ uint16_t ES_packetloop_icmp_tcp(uint8_t *buf,uint16_t plen);
 // functions to fill the web pages with data:
 //uint16_t ES_fill_tcp_data_p(uint8_t *buf,uint16_t pos, const prog_char *progmem_s);
 uint16_t ES_fill_tcp_data(uint8_t *buf,uint16_t pos, const char *s);
-uint16_t ES_fill_tcp_data_len(uint8_t *buf,uint16_t pos, const char *s, uint16_t len );
 // send data from the web server to the client:
 void ES_www_server_reply(uint8_t *buf,uint16_t dlen);
 
@@ -103,7 +92,6 @@ uint8_t *ES_dnslkup_getip( void );
 void ES_dnslkup_set_dnsip(uint8_t *dnsipaddr);
 void ES_dnslkup_request(uint8_t *buf, uint8_t *hoststr );
 uint8_t ES_udp_client_check_for_dns_answer(uint8_t *buf,uint16_t plen);
-uint8_t resolveHostname(uint8_t *buf, uint16_t buffer_size, uint8_t *hostname );
 #endif
 
 #ifdef DHCP_client
@@ -113,7 +101,6 @@ void ES_dhcp_start(uint8_t *buf, uint8_t *macaddrin, uint8_t *ipaddrin,
 		uint8_t *dnssvrin );
 
 uint8_t ES_check_for_dhcp_answer(uint8_t *buf,uint16_t plen);
-uint8_t allocateIPAddress(uint8_t *buf, uint16_t buffer_size, uint8_t *mymac, uint16_t myport, uint8_t *myip, uint8_t *mynetmask, uint8_t *gwip, uint8_t *dnsip, uint8_t *dhcpsvrip );
 #endif
 
 #define HTTP_HEADER_START ((uint16_t)TCP_SRC_PORT_H_P+(buf[TCP_HEADER_LEN_P]>>4)*4)

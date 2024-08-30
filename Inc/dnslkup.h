@@ -1,22 +1,19 @@
-/*********************************************
- * vim:sw=8:ts=8:si:et
- * To use the above modeline in vim you must have "set modeline" in your .vimrc
- * Author: Guido Socher 
- * Copyright: GPL V2
+/**
+ * @file dnslkup.h
+ * @brief Header file for DNS lookup function prototypes and related definitions.
  *
- * DNS look-up functions based on the udp client
+ * This file provides the function prototypes for DNS client operations, such as sending DNS requests,
+ * processing DNS responses, and resolving hostnames to IP addresses. It also includes functions
+ * for setting the DNS server and checking for errors during DNS lookups.
  *
- * Chip type           : ATMEGA88/ATMEGA168/ATMEGA328p with ENC28J60
- *********************************************/
-//@{
+ * @note For more information, refer to the `license.md` file located at the root of the project.
+ */
+
 #ifndef DNSLKUP_H
 #define DNSLKUP_H
 
-#include "stm32includes.h"
-
-// to use this you need to enable UDP_client in the file ip_config.h
-//
-#if defined (UDP_client)
+#include "main.h"
+//#include "defines.h"
 
 // look-up a hostname (you should check client_waiting_gw() before calling this function):
 extern void dnslkup_request(uint8_t *buf, uint8_t *hostname);
@@ -36,6 +33,6 @@ extern uint8_t *dnslkup_getip(void);
 // set DNS server to be used for lookups.
 extern void dnslkup_set_dnsip(uint8_t *dnsipaddr);
 
-#endif /* UDP_client */
+uint8_t resolveHostname(uint8_t *buf, uint16_t buffer_size, uint8_t *hostname );
+
 #endif /* DNSLKUP_H */
-//@}

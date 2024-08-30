@@ -1,64 +1,114 @@
-/*! \mainpage Arduino ENC28J60 EtherShield Library
-
-\section Introduction
-
-This library is derived from original code by Guido Socher and Pascal Stang, and hence licensed as GPL2. See http://www.gnu.org/licenses/gpl.html
-
-It comprises a C++ class wrapper and a number of C files. It still follows pretty much the same structure as the original code that it was based on.
-
-The Arduino EtherShield Library was initially created by Xing Yu of Nuelectronics, http://www.nuelectronics.com/estore/index.php?main_page=product_info&cPath=1&products_id=4
-
-The library was heavily modified and improved by Andrew D. Lindsay (http://blog.thiseldo.co.uk) with extra code from the Tuxgraphics.org ethernet library (http://www.tuxgraphics.org/electronics/200905/embedded-tcp-ip-stack.shtml), which also originated from the Pascal Stang code.
-
-Further additions include the DHCP implementation with some assistance from JCW at http://jeelabs.org which is now used in their own version of the library for their EtherCard at http://jeelabs.net/projects/hardware/wiki/Ether_Card.
-
-The library is now being used successfully with the Nanode, as minimal Ethernet connected Arduino compatible board, details available from http://wiki.london.hackspace.org.uk/view/Project:Nanode
-
-\section Download
-
-Download the latest library and examples from https://github.com/thiseldo/EtherShield
-
-To fully utilise the Nanode board, you will also require a library that can access the onboard MAC address chip.
-One such library is available from https://github.com/thiseldo/NanodeMAC and is used in the examples provided with this library.
-
-\section Instalation
-
-The library .zip file downloaded from https://github.com/thiseldo/EtherShield should be renamed to EtherShield.zip or EtherShield.tar.gz depending on the archive file you're downloading.
-
-The file should be extracted to the sketchbook/libraries/ folder so that there is a subdirectory called EtherSheild containing all the files from the archive.
-
-\section License
-
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
-
-  A copy of the GNU Lesser General Public
-  License is available from http://www.gnu.org/licenses/gpl.html; or write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
+/**
+ * @file EtherShield.c
+ * @brief Implementation of functions for establishing a full connection using the EtherShield
+ * library with the ENC28J60 Ethernet module.
+ *
+ * This file contains functions to initialize the connection, allocate IP addresses via DHCP,
+ * resolve DNS hostnames, and request NTP time updates. It also processes incoming packets
+ * for ICMP and TCP protocols.
+ *
+ * @note For more information, refer to the `license.md` file located at the root of the project.
  */
-
-#include "enc28j60.h"
-#include "ip_arp_udp_tcp.h"
-#include "websrv_help_functions.h"
-
-#ifdef DNS_client
-	#include "dnslkup.h"
-#endif
-
-#ifdef DHCP_client
-	#include "dhcp.h"
-#endif
 
 #include "EtherShield.h"
 
+#define BUFFER_SIZE 400
+
+#define DHCP_BUFFER_SIZE 300
+#define DNS_BUFFER_SIZE 200
+#define NTP_BUFFER_SIZE 150
+
+uint8_t bufDHCP[DHCP_BUFFER_SIZE];
+uint8_t bufDNS[DNS_BUFFER_SIZE];
+uint8_t bufNTP[NTP_BUFFER_SIZE];
+
+uint8_t hostname[] = "www.google.com";
+
+// Function to initialize and establish a full connection
+void ES_FullConnection(SPI_HandleTypeDef *hspi) {
+    // Set the SPI handle for the ENC28J60
+    enc28j60_set_spi(hspi);
+
+    // Initialize the ENC28J60 with the MAC address
+    enc28j60Init(macaddrin);
+
+    // Configure the ENC28J60 clock
+    enc28j60clkout(3);
+
+    // Configure the ENC28J60 PHY LEDs
+    enc28j60PhyWrite(PHLCON, 0x3880);
+    enc28j60PhyWrite(PHLCON, 0x3990);
+    enc28j60PhyWrite(PHLCON, 0x3476);
+
+    // Allocate IP address via DHCP
+    allocateIPAddress(bufDHCP, BUFFER_SIZE, macaddrin, 80, ipaddrin, maskin, gwipin, dnssvrin, dhcpsvrin);
+
+    // Set the gateway IP for the client
+    client_set_gwip(gwipin);
+
+    // Resolve the DNS hostname
+    dnslkup_request(bufDNS, domainName);
+    udp_client_check_for_dns_answer(bufDNS, plen);
+    dnslkup_set_dnsip(dnsipaddr);
+    resolveHostname(bufDNS, BUFFER_SIZE, hostname);
+
+    // Send NTP request to get the current time
+    client_ntp_request(bufNTP, ntpip, 123);
+
+
+
+    // Log the success of the full connection setup
+    udpLog2("ES_FullConnection", "WORKS!");
+
+}
+
+// Function to initialize and establish a full connection
+void ES_RenewCo() {
+    // Allocate IP address via DHCP
+    allocateIPAddress(bufDHCP, BUFFER_SIZE, macaddrin, 80, ipaddrin, maskin, gwipin, dnssvrin, dhcpsvrin);
+
+    // Set the gateway IP for the client
+    client_set_gwip(gwipin);
+
+    // Resolve the DNS hostname
+    dnslkup_request(bufDNS, domainName);
+    udp_client_check_for_dns_answer(bufDNS, plen);
+    dnslkup_set_dnsip(dnsipaddr);
+    resolveHostname(bufDNS, BUFFER_SIZE, hostname);
+
+    // Send NTP request to get the current time
+    client_ntp_request(bufNTP, ntpip, 123);
+
+    // Log the success of the full connection setup
+    udpLog2("ES_RenewCo", "WORKS!");
+}
+
+// Function to process incoming web packets
+void ES_ProcessWebPacket() {
+    static uint8_t packet[500];
+    handle_AllPacket(packet, enc28j60PacketReceive(500, packet));
+}
+
+// Function to process incoming web packets
+void ES_ProcessWebPacketFilter() {
+//	enc28j60SetBank(ERXFCON);
+//	write_control_register(0x18, 0b10100001);
+//    enc28j60WriteOp(ENC28J60_BIT_FIELD_SET, EIE, EIE_INTIE|EIE_PKTIE);
+//    enc28j60WriteOp(ENC28J60_BIT_FIELD_CLR, EIR, EIR_PKTIF);
+    static uint8_t packet[500];
+    uint16_t len = enc28j60PacketReceive(500, packet);
+    if (len > 0) {
+        handle_AllPacket(packet, len);
+    }
+    handle_AllPacket(packet, enc28j60PacketReceive(500, packet));
+}
+
+
+void ES_init_network() {
+    init_ip_arp_udp_tcp(macaddrin, ipaddrin, 80);
+    initialize_tcp_sequence_number();
+    init_tcp_connections();
+}
 /**
  * Initialise SPI, separate from main initialisation so that
  * multiple SPI devices can be used together
@@ -67,7 +117,6 @@ void ES_enc28j60SpiInit(SPI_HandleTypeDef *hspi){
 //  ENC28J60_SPI1_Configuration();
 	enc28j60_set_spi(hspi);
 }
-
 
 /**
  * Initialise the ENC28J60 using default chip select pin
@@ -228,10 +277,6 @@ uint16_t ES_fill_tcp_data(uint8_t *buf,uint16_t pos, const char *s){
 	return fill_tcp_data(buf,pos, s);
 }
 
-uint16_t ES_fill_tcp_data_len(uint8_t *buf,uint16_t pos, const char *s, uint16_t len ){
-	return fill_tcp_data_len(buf,pos, s, len);
-}
-
 void ES_www_server_reply(uint8_t *buf,uint16_t dlen) {
 	www_server_reply(buf,dlen);
 }
@@ -294,10 +339,6 @@ void ES_client_http_post(char *urlbuf, char *hoststr, char *additionalheaderline
 void ES_client_ntp_request(uint8_t *buf,uint8_t *ntpip,uint8_t srcport) {
 	client_ntp_request(buf,ntpip,srcport);
 }
-
-uint8_t ES_client_ntp_process_answer(uint8_t *buf,uint32_t *time,uint8_t dstport_l) {
-	return client_ntp_process_answer(buf,time,dstport_l);
-}
 #endif		// NTP_client
 
 void ES_register_ping_rec_callback(void (*callback)(uint8_t *srcip)) {
@@ -314,11 +355,9 @@ uint8_t ES_packetloop_icmp_checkreply(uint8_t *buf,uint8_t *ip_monitoredhost) {
 }
 #endif // PING_client
 
-#ifdef WOL_client
 void ES_send_wol(uint8_t *buf,uint8_t *wolmac) {
 	send_wol(buf,wolmac);
 }
-#endif // WOL_client
 
 
 #ifdef FROMDECODE_websrv_help
@@ -377,65 +416,6 @@ void ES_dnslkup_request(uint8_t *buf,uint8_t *hostname) {
 uint8_t ES_udp_client_check_for_dns_answer(uint8_t *buf,uint16_t plen){
 	return( udp_client_check_for_dns_answer( buf, plen) );
 }
-
-
-// Perform all processing to resolve a hostname to IP address.
-// Returns 1 for successful Name resolution, 0 otherwise
-uint8_t resolveHostname(uint8_t *buf, uint16_t buffer_size, uint8_t *hostname ) {
-  uint16_t dat_p;
-  int plen = 0;
-  long lastDnsRequest = HAL_GetTick();
-  uint8_t dns_state = DNS_STATE_INIT;
-  bool gotAddress = FALSE;
-  uint8_t dnsTries = 3;	// After 10 attempts fail gracefully so other action can be carried out
-
-  while( !gotAddress ) {
-    // handle ping and wait for a tcp packet
-    plen = enc28j60PacketReceive(buffer_size, buf);
-    dat_p=packetloop_icmp_tcp(buf,plen);
-
-    // We have a packet
-    // Check if IP data
-    if (dat_p == 0) {
-      if (client_waiting_gw() ) {
-        // No ARP received for gateway
-        continue;
-      }
-      // It has IP data
-      if (dns_state==DNS_STATE_INIT) {
-        dns_state=DNS_STATE_REQUESTED;
-        lastDnsRequest = HAL_GetTick();
-        dnslkup_request(buf,hostname);
-        continue;
-      }
-      if (dns_state!=DNS_STATE_ANSWER){
-        // retry every minute if dns-lookup failed:
-        if (HAL_GetTick() > (lastDnsRequest + 60000L) ){
-	  if( --dnsTries <= 0 ) 
-	    return 0;		// Failed to allocate address
-
-          dns_state=DNS_STATE_INIT;
-          lastDnsRequest = HAL_GetTick();
-        }
-        // don't try to use client before
-        // we have a result of dns-lookup
-
-        continue;
-      }
-    } 
-    else {
-      if (dns_state==DNS_STATE_REQUESTED && udp_client_check_for_dns_answer( buf, plen ) ){
-        dns_state=DNS_STATE_ANSWER;
-        //client_set_wwwip(dnslkup_getip());
-        client_tcp_set_serverip(dnslkup_getip());
-	gotAddress = TRUE;
-      }
-    }
-  }
-  
-  return 1;
-}
-
 #endif		// DNS_client
 
 #ifdef DHCP_client
@@ -451,61 +431,6 @@ uint8_t ES_dhcp_state(void)
 uint8_t ES_check_for_dhcp_answer(uint8_t *buf,uint16_t plen){
 	return( check_for_dhcp_answer( buf, plen) );
 }
-
-// Utility functions 
-
-// Perform all processing to get an IP address plus other addresses returned, e.g. gw, dns, dhcp server.
-// Returns 1 for successful IP address allocation, 0 otherwise
-uint8_t allocateIPAddress(uint8_t *buf, uint16_t buffer_size, uint8_t *mymac, uint16_t myport, uint8_t *myip, uint8_t *mynetmask, uint8_t *gwip, uint8_t *dnsip, uint8_t *dhcpsvrip ) {
-  uint16_t dat_p;
-  int plen = 0;
-  long lastDhcpRequest = HAL_GetTick();
-  uint8_t dhcpState = 0;
-  bool gotIp = FALSE;
-  uint8_t dhcpTries = 10;	// After 10 attempts fail gracefully so other action can be carried out
-
-  dhcp_start( buf, mymac, myip, mynetmask,gwip, dnsip, dhcpsvrip );
-
-  while( !gotIp ) {
-    // handle ping and wait for a tcp packet
-    plen = enc28j60PacketReceive(buffer_size, buf);
-    dat_p=packetloop_icmp_tcp(buf,plen);
-    if(dat_p==0) {
-      check_for_dhcp_answer( buf, plen);
-      dhcpState = dhcp_state();
-      // we are idle here
-      if( dhcpState != DHCP_STATE_OK ) {
-        if (HAL_GetTick() > (lastDhcpRequest + 10000L) ){
-          lastDhcpRequest = HAL_GetTick();
-	  if( --dhcpTries <= 0 ) 
-		  return 0;		// Failed to allocate address
-          // send dhcp
-          dhcp_start( buf, mymac, myip, mynetmask,gwip, dnsip, dhcpsvrip );
-        }
-      } else {
-        if( !gotIp ) {
-          gotIp = TRUE;
-
-          //init the ethernet/ip layer:
-          init_ip_arp_udp_tcp(mymac, myip, myport);
-
-          // Set the Router IP
-          client_set_gwip(gwip);  // e.g internal IP of dsl router
-
-#ifdef DNS_client
-          // Set the DNS server IP address if required, or use default
-          dnslkup_set_dnsip( dnsip );
-#endif
-
-        }
-      }
-    }
-  }
-
-  return 1;
-
-}
-
 #endif		// DHCP_client
 
 void ES_enc28j60PowerUp(){

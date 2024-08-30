@@ -1,3 +1,8 @@
+/**
+* @file error_handler.h
+ * @brief Header file
+ */
+
 #ifndef __ERROR_HANDLER_H
 #define __ERROR_HANDLER_H
 

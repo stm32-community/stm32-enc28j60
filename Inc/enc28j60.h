@@ -1,38 +1,20 @@
+/**
+ * @file ENC28J60.h
+ * @brief Header file containing definitions, macros, and function prototypes for interfacing with the ENC28J60 Ethernet controller.
+ *
+ * This file includes control register definitions, chip enable/disable macros, configurations for delays,
+ * chip select (CS) handling, and various SPI operation codes. It also provides function prototypes
+ * for initializing and managing the ENC28J60 Ethernet controller.
+ *
+ * @note For more information, refer to the `license.md` file located at the root of the project.
+ */
+
 #ifndef __ENC28J60_H
 #define __ENC28J60_H
 
-#include "stm32includes.h"
-#define Delay HAL_Delay
+#include "main.h"
 
-/*
-#pragma GCC push_options
-#pragma GCC optimize ("O0")
-static inline void uDelay(uint32_t useconds) {
-	volatile int cycleCount = ?
-	while (cycleCount--);
-}
-#pragma GCC pop_options
-*/
-
-#ifndef ETHERNET_LED_GPIO
-#	error Please define ETHERNET_LED_GPIO, for example by gcc option -DETHERNET_LED_GPIO=GPIOA
-#endif
-#ifndef ETHERNET_LED_PIN
-#	error Please define ETHERNET_LED_PIN, for example by gcc option -DETHERNET_LED_PIN=GPIO_PIN_5
-#endif
-
-#ifndef ETHERNET_CS_GPIO
-#	error Please define chip-select GPIO port ETHERNET_CS_GPIO, for example by gcc option -DETHERNET_CS_GPIO=GPIOA
-#endif
-#ifndef ETHERNET_CS_PIN
-#	error Please define chip-select pin ETHERNET_CS_PIN, for example by gcc option -DETHERNET_CS_PIN=GPIO_PIN_4
-#endif
-
-#ifndef ETHERNET_CS_DELAY
-#	warning ETHERNET_CS_DELAY is not defined. Setting to "2" (mseconds). Adapter may work very slow or not properly. If the latency on "1" is too big, but on "0" the adapter is not working properly, you can try values >= 10: it will use other delay method (for example try value 1000).
-#	define ETHERNET_CS_DELAY 2
-#endif
-
+#ifdef CS_Only
 #if ETHERNET_CS_DELAY >= 10
 #	define ETHERNET_CS_DELAY_PROC {volatile uint32_t i=ETHERNET_CS_DELAY; while(i--);}
 #else
@@ -45,9 +27,12 @@ static inline void uDelay(uint32_t useconds) {
 #define enableChip   ETHERNET_CS_GPIO->BSRR = ETHERNET_CS_PIN<<16;\
 	ETHERNET_LED_GPIO->BSRR = ETHERNET_LED_PIN;\
 	ETHERNET_CS_DELAY_PROC;
-//#define disableChip  {}
-//#define enableChip   {}
+#endif
 
+#ifdef NSS_OutputSignal
+#define disableChip __HAL_SPI_DISABLE(hspi);
+#define enableChip;
+#endif
 
 // ENC28J60 Control Registers
 // Control register definitions are a combination of address,
@@ -268,53 +253,49 @@ static inline void uDelay(uint32_t useconds) {
 #define ENC28J60_BIT_FIELD_CLR       0xA0
 #define ENC28J60_SOFT_RESET          0xFF
 
-
 // The RXSTART_INIT should be zero. See Rev. B4 Silicon Errata
 // buffer boundaries applied to internal 8K ram
 // the entire available packet buffer space is allocated
 //
 // start with RX buf at 0/
-#define RXSTART_INIT     0x0
+#define RXSTART_INIT 0x0
 // RX buffer end
-#define RXSTOP_INIT      (0x1FFF-0x0600-1)
+#define RXSTOP_INIT (0x1FFF-0x0600-1)
 // start TX buffer at 0x1FFF-0x0600, place for one full ethernet frame (~1500 bytes)
-#define TXSTART_INIT     (0x1FFF-0x0600)
+#define TXSTART_INIT (0x1FFF-0x0600)
 // stop TX buffer at end of mem
-#define TXSTOP_INIT      0x1FFF
-//
+#define TXSTOP_INIT 0x1FFF
+
 // max frame length which the controller will accept:
-#define        MAX_FRAMELEN        1500        // (note: maximum ethernet frame length would be 1518)
+#define MAX_FRAMELEN 1500        // (note: maximum ethernet frame length would be 1518)
 //#define MAX_FRAMELEN     600
 
-//void ENC28J60_SPI1_Configuration(void);
-//void ENC28J60_GPIO_Configuration(void);
 void enc28j60_set_spi(SPI_HandleTypeDef *hspi_new);
 unsigned char ENC28J60_SendByte(unsigned char dt);
-uint8_t enc28j60ReadOp(uint8_t op, uint8_t address);
-
 
 // functions
-extern uint8_t enc28j60ReadOp(uint8_t op, uint8_t address);
-extern void enc28j60WriteOp(uint8_t op, uint8_t address, uint8_t data);
-extern void enc28j60ReadBuffer(uint16_t len, uint8_t* data);
-extern void enc28j60WriteBuffer(uint16_t len, uint8_t* data);
-extern void enc28j60SetBank(uint8_t address);
-extern uint8_t enc28j60Read(uint8_t address);
-extern void enc28j60Write(uint8_t address, uint8_t data);
-extern void enc28j60PhyWrite(uint8_t address, uint16_t data);
-extern void enc28j60clkout(uint8_t clk);
-extern void enc28j60SpiInit(void);
-extern void enc28j60Init(uint8_t* macaddr);
-extern void enc28j60PacketSend(uint16_t len, uint8_t* packet);
-extern uint16_t enc28j60PacketReceive(uint16_t maxlen, uint8_t* packet);
-extern uint8_t enc28j60getrev(void);
-extern uint8_t enc28j60hasRxPkt(void);
-extern uint8_t enc28j60linkup(void);
-extern void enc28j60EnableBroadcast( void );
-extern void enc28j60DisableBroadcast( void );
-extern void enc28j60EnableMulticast( void );
-extern void enc28j60DisableMulticast( void );
-extern void enc28j60PowerDown();
-extern void enc28j60PowerUp();
+uint8_t enc28j60ReadOp(uint8_t op, uint8_t address);
+void enc28j60WriteOp(uint8_t op, uint8_t address, uint8_t data);
+void enc28j60ReadBuffer(uint16_t len, uint8_t* data);
+void enc28j60WriteBuffer(uint16_t len, uint8_t* data);
+void enc28j60SetBank(uint8_t address);
+uint8_t enc28j60Read(uint8_t address);
+void enc28j60Write(uint8_t address, uint8_t data);
+void enc28j60PhyWrite(uint8_t address, uint16_t data);
+static void enc28j60PhyWriteWord(uint8_t address, uint16_t data);
+void enc28j60clkout(uint8_t clk);
+void enc28j60SpiInit(void);
+void enc28j60Init(uint8_t* macaddr);
+void enc28j60PacketSend(uint16_t len, uint8_t* packet);
+uint16_t enc28j60PacketReceive(uint16_t maxlen, uint8_t* packet);
+uint8_t enc28j60getrev(void);
+uint8_t enc28j60hasRxPkt(void);
+uint8_t enc28j60linkup(void);
+void enc28j60EnableBroadcast( void );
+void enc28j60DisableBroadcast( void );
+void enc28j60EnableMulticast( void );
+void enc28j60DisableMulticast( void );
+void enc28j60PowerDown();
+void enc28j60PowerUp();
 
 #endif /* __ENC28J60_H */
