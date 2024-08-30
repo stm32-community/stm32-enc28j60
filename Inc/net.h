@@ -1,12 +1,12 @@
-/*
- * net.h
+/**
+ * @file net.h
+ * @brief Header file for network-related definitions and macros for ENC28J60 Ethernet controller.
  *
- * Created on: Jun 4, 2024
- * Author: dtneo
+ * This file contains the definitions and macros necessary for interacting with the ENC28J60 Ethernet controller,
+ * including structures and constants for handling Ethernet, IP, TCP, UDP, and DNS protocols. It also defines
+ * various states for DHCP and DNS clients, as well as structures for managing TCP connections.
  *
- * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
- * It includes control register definitions, chip enable/disable macros, and configurations for delays and
- * chip select (CS) handling.
+ * @note The file is configured to support different STM32 series, including STM32F0, STM32F1, and STM32F4.
  */
 
 #ifndef NET_H

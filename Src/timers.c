@@ -1,8 +1,12 @@
-/*
- * timers.c
+/**
+ * @file timers.c
+ * @brief Source file implementing timer-related functions for STM32, including initialization, logging, and interrupt handling.
  *
- *  Created on: Aug 7, 2024
- *      Author: dtneo
+ * This file contains functions to initialize and manage timers on the STM32 platform. It includes
+ * interrupt handling for the TIM4 timer and logging of timer states. The functions ensure that
+ * timers are properly initialized, started, and managed during runtime.
+ *
+ * @note For more information, refer to the `license.md` file located at the root of the project.
  */
 
 #include "timers.h"

@@ -1,3 +1,12 @@
+/*
+ * @file logmanager.c
+ * @brief Source file
+ *
+ * This source file implements the Log Manager module, which handles logging operations
+ * for different types of logs such as UDP, Web, and UART. It includes functions to log
+ * messages, initialize the log manager, and store logs in a circular buffer.
+ */
+
 #include "LogManager.h"
 #include "EtherShield.h" // Assuming this is where udplog2 is declared
 

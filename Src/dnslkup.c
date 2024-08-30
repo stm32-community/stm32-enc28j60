@@ -1,12 +1,12 @@
-/*
- * dnslkup.C
+/**
+ * @file dnslkup.c
+ * @brief Source file implementing DNS lookup functionality for resolving hostnames to IP addresses.
  *
- * Created on: Jun 4, 2024
- * Author: dtneo
+ * This file contains the implementation of DNS client functionality, including sending DNS queries,
+ * processing DNS responses, and handling DNS errors. It provides functions for setting the DNS server,
+ * sending DNS requests, and resolving hostnames to IP addresses.
  *
- * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
- * It includes control register definitions, chip enable/disable macros, and configurations for delays and
- * chip select (CS) handling.
+ * @note For more information, refer to the `license.md` file located at the root of the project.
  */
 
 #include "defines.h"

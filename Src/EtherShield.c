@@ -1,8 +1,13 @@
-/*
- * This file contains the implementation for establishing a full connection using the EtherShield library
- * with an ENC28J60 Ethernet module. It includes functions to initialize the connection, allocate IP addresses
- * via DHCP, resolve DNS hostnames, and request NTP time updates. Additionally, it processes incoming packets
+/**
+ * @file EtherShield.c
+ * @brief Implementation of functions for establishing a full connection using the EtherShield
+ * library with the ENC28J60 Ethernet module.
+ *
+ * This file contains functions to initialize the connection, allocate IP addresses via DHCP,
+ * resolve DNS hostnames, and request NTP time updates. It also processes incoming packets
  * for ICMP and TCP protocols.
+ *
+ * @note For more information, refer to the `license.md` file located at the root of the project.
  */
 
 #include "EtherShield.h"

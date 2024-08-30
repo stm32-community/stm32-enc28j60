@@ -1,3 +1,13 @@
+/*
+ * @file logmanager.c
+ * @brief Source file
+ *
+ * This header file defines the interface for the Log Manager module, which handles logging
+ * operations for different types of logs such as UDP, Web, and UART. It includes an enumeration
+ * for log types, function prototypes for logging messages, initializing the log manager, and
+ * adding logs to the system.
+ */
+
 #ifndef LOGMANAGER_H
 #define LOGMANAGER_H
 

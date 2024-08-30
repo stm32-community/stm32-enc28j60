@@ -1,12 +1,12 @@
-/*
- * packet.h
+/**
+ * @file packet.h
+ * @brief Header file containing function prototypes for processing Ethernet packets, including TCP, UDP, ICMP, and HTTP protocols.
  *
- * Created on: Jun 4, 2024
- * Author: dtneo
+ * This file declares functions for handling various types of network packets, including Ethernet, TCP, UDP,
+ * ICMP, and HTTP. It provides the necessary prototypes for managing packet processing, handling protocol-specific
+ * tasks, and maintaining network communication states.
  *
- * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
- * It includes control register definitions, chip enable/disable macros, and configurations for delays and
- * chip select (CS) handling.
+ * @note For more information, refer to the `license.md` file located at the root of the project.
  */
 
 #ifndef PACKET_H

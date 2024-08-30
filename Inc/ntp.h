@@ -1,13 +1,12 @@
-/*
- * ntp.h
+/**
+ * @file ntp.h
+ * @brief NTP (Network Time Protocol) functions for the STM32 using ENC28J60 Ethernet controller.
  *
- * Created on: Jun 4, 2024
- * Author: dtneo
- *
- * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
- * It includes control register definitions, chip enable/disable macros, and configurations for delays and
- * chip select (CS) handling.
+ * This header file provides the necessary function declarations for sending NTP requests and processing
+ * NTP responses. It facilitates synchronization of the STM32 microcontroller's Real-Time Clock (RTC)
+ * with a remote NTP server.
  */
+
 #ifndef NTP_H
 #define NTP_H
 

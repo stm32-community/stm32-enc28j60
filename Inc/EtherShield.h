@@ -1,12 +1,11 @@
-/*
- * EtherShield.h
+/**
+ * @file EtherShield.h
+ * @brief Header file containing definitions and macros for interfacing with the ENC28J60 Ethernet controller.
  *
- * Created on: Jun 4, 2024
- * Author: dtneo
+ * This file includes control register definitions, chip enable/disable macros, and configurations for delays
+ * and chip select (CS) handling.
  *
- * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
- * It includes control register definitions, chip enable/disable macros, and configurations for delays and
- * chip select (CS) handling.
+ * @note For more information, refer to the `license.md` file located at the root of the project.
  */
 
 #ifndef ETHERSHIELD_H

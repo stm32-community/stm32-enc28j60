@@ -1,12 +1,12 @@
-/*
- * ENC28J60.h
+/**
+ * @file ENC28J60.h
+ * @brief Header file containing definitions, macros, and function prototypes for interfacing with the ENC28J60 Ethernet controller.
  *
- * Created on: Jun 4, 2024
- * Author: dtneo
+ * This file includes control register definitions, chip enable/disable macros, configurations for delays,
+ * chip select (CS) handling, and various SPI operation codes. It also provides function prototypes
+ * for initializing and managing the ENC28J60 Ethernet controller.
  *
- * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
- * It includes control register definitions, chip enable/disable macros, and configurations for delays and
- * chip select (CS) handling.
+ * @note For more information, refer to the `license.md` file located at the root of the project.
  */
 
 #ifndef __ENC28J60_H

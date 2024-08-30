@@ -1,8 +1,11 @@
-/*
- * defines.h
+/**
+ * @file defines.h
+ * @brief Header file containing global definitions and macros for configuring the STM32 and ENC28J60 Ethernet module.
  *
- *  Created on: May 30, 2024
- *      Author: dtneo
+ * This file includes configurations for SPI settings, conditional compilation flags for enabling various
+ * networking clients (e.g., NTP, DNS, DHCP), and external declarations of global variables and function prototypes.
+ *
+ * @note For more information, refer to the `license.md` file located at the root of the project.
  */
 
 #ifndef INC_DEFINES_H_

@@ -1,12 +1,13 @@
-/*
- * ENC28J60.c
+/**
+ * @file ENC28J60.c
+ * @brief Source file containing the implementation for interfacing with the ENC28J60 Ethernet controller.
  *
- * Created on: Jun 4, 2024
- * Author: dtneo
+ * This file includes functions for initializing the ENC28J60, handling SPI communication,
+ * reading and writing registers, managing buffers, and controlling power states. It also
+ * contains functions for sending and receiving Ethernet packets, as well as configuring
+ * various network settings.
  *
- * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
- * It includes control register definitions, chip enable/disable macros, and configurations for delays and
- * chip select (CS) handling.
+ * @note For more information, refer to the `license.md` file located at the root of the project.
  */
 
 #include "defines.h"

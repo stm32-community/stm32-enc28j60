@@ -1,12 +1,12 @@
-/*
- * ENC28J60.c
+/**
+ * @file dhcp.c
+ * @brief Source file implementing DHCP client functionality for IP address allocation and network configuration.
  *
- * Created on: Jun 4, 2024
- * Author: dtneo
+ * This file contains the implementation of the DHCP client, responsible for obtaining an IP address,
+ * subnet mask, gateway, and DNS server information from a DHCP server. It includes functions for
+ * sending DHCP requests, processing DHCP responses, and managing the DHCP lease.
  *
- * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
- * It includes control register definitions, chip enable/disable macros, and configurations for delays and
- * chip select (CS) handling.
+ * @note For more information, refer to the `license.md` file located at the root of the project.
  */
 
 #include "dhcp.h"

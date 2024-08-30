@@ -1,12 +1,11 @@
-/*
- * net.C
+/**
+ * @file net.c
+ * @brief Implementation of network-related functions for ENC28J60 Ethernet controller.
  *
- * Created on: Jun 4, 2024
- * Author: dtneo
- *
- * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
- * It includes control register definitions, chip enable/disable macros, and configurations for delays and
- * chip select (CS) handling.
+ * This file implements various functions to interact with the ENC28J60 Ethernet controller, including
+ * handling ICMP echo requests (ping), registering callbacks for ICMP replies, checking for ICMP replies,
+ * making ICMP echo replies, and sending Wake-on-LAN (WOL) packets. It also includes the management of TCP
+ * client connections and settings related to a web server port.
  */
 
 #include "net.h"

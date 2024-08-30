@@ -1,12 +1,12 @@
-/*
- * dnslkup.h
+/**
+ * @file dnslkup.h
+ * @brief Header file for DNS lookup function prototypes and related definitions.
  *
- * Created on: Jun 4, 2024
- * Author: dtneo
+ * This file provides the function prototypes for DNS client operations, such as sending DNS requests,
+ * processing DNS responses, and resolving hostnames to IP addresses. It also includes functions
+ * for setting the DNS server and checking for errors during DNS lookups.
  *
- * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
- * It includes control register definitions, chip enable/disable macros, and configurations for delays and
- * chip select (CS) handling.
+ * @note For more information, refer to the `license.md` file located at the root of the project.
  */
 
 #ifndef DNSLKUP_H

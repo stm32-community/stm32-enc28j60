@@ -1,13 +1,13 @@
-/*
- * packet.C
+/**
+ * @file packet.c
+ * @brief Functions for handling network packets, including NTP requests and responses.
  *
- * Created on: Jun 4, 2024
- * Author: dtneo
- *
- * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
- * It includes control register definitions, chip enable/disable macros, and configurations for delays and
- * chip select (CS) handling.
+ * This file contains functions to send NTP UDP packets and process NTP server responses. It also
+ * includes the logic to update the RTC (Real-Time Clock) of the STM32 microcontroller based on the NTP
+ * timestamp received from the server. The NTP implementation follows the specifications from
+ * RFC 958. Additional utility functions for handling various network packets are provided.
  */
+
 #include "ntp.h"
 #include "packet.h"
 #include "tcp.h"

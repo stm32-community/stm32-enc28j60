@@ -1,8 +1,10 @@
-/*
- * RTC.h
+/**
+ * @file RTC.h
+ * @brief Real-Time Clock (RTC) interaction functions for STM32 microcontroller.
  *
- *  Created on: Jun 3, 2024
- *      Author: dtneo
+ * This header file provides the declaration of the function used to obtain the current
+ * date and time from the RTC of the STM32 microcontroller. The function formats the
+ * date and time into a human-readable string for logging purposes.
  */
 
 #ifndef INC_RTC_H_

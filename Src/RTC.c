@@ -1,8 +1,7 @@
- /*
- * RTC.c
+/*
+ * @file RTC.c
+ * @brief Source file
  *
- * Created on: Jun 3, 2024
- * Author: dtneo
  *
  * This file contains the implementation for interacting with the Real-Time Clock (RTC)
  * on the STM32 microcontroller. It provides a function to obtain the current date and

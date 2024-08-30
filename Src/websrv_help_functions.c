@@ -1,8 +1,6 @@
 /*
- * websrv_help_functions.C
- *
- * Created on: Jun 4, 2024
- * Author: dtneo
+ * @file websrv_help_functions.c
+ * @brief Source file
  *
  * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
  * It includes control register definitions, chip enable/disable macros, and configurations for delays and

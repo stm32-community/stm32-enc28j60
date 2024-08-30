@@ -1,13 +1,14 @@
-/*
- * packet.C
+/**
+ * @file packet.c
+ * @brief Source file implementing packet processing functions for handling Ethernet, TCP, UDP, ICMP, and HTTP protocols.
  *
- * Created on: Jun 4, 2024
- * Author: dtneo
+ * This file includes functions to process incoming Ethernet packets, including handling ARP, IP, TCP, UDP,
+ * and ICMP protocols. It also manages TCP connection states, processes HTTP requests, and handles UDP-based
+ * commands and NTP responses.
  *
- * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
- * It includes control register definitions, chip enable/disable macros, and configurations for delays and
- * chip select (CS) handling.
+ * @note For more information, refer to the `license.md` file located at the root of the project.
  */
+
 #include "packet.h"
 
 // Function to process all incoming packets

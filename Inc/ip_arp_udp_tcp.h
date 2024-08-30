@@ -1,12 +1,12 @@
-/*
- * ip_arp_udp_tcp.h
+/**
+ * @file ip_arp_udp_tcp.h
+ * @brief Header file containing function prototypes and definitions for IP, ARP, UDP, and TCP protocols.
  *
- * Created on: Jun 4, 2024
- * Author: dtneo
+ * This file includes function declarations for initializing and managing network communications using
+ * the ENC28J60 Ethernet controller. It provides functions for handling ARP, UDP, and TCP packets,
+ * as well as client-side networking tasks such as ARP requests and gateway management.
  *
- * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
- * It includes control register definitions, chip enable/disable macros, and configurations for delays and
- * chip select (CS) handling.
+ * @note For more information, refer to the `license.md` file located at the root of the project.
  */
 
 #ifndef IP_ARP_UDP_TCP_H

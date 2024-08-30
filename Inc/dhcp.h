@@ -1,13 +1,14 @@
-/*
- * ENC28J60.h
+/**
+ * @file dhcp.h
+ * @brief Header file for DHCP client function prototypes and definitions.
  *
- * Created on: Jun 4, 2024
- * Author: dtneo
+ * This file provides the function prototypes and necessary definitions for implementing DHCP client functionality.
+ * It includes declarations for initializing the DHCP process, sending requests, and handling DHCP responses
+ * such as DHCPOFFER and DHCPACK.
  *
- * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
- * It includes control register definitions, chip enable/disable macros, and configurations for delays and
- * chip select (CS) handling.
+ * @note For more information, refer to the `license.md` file located at the root of the project.
  */
+
 
 #ifndef DHCP_H
 #define DHCP_H

@@ -1,13 +1,12 @@
 /*
- * tcp.C
+ * @file tcp.c
+ * @brief Source file
  *
- * Created on: Jun 4, 2024
- * Author: dtneo
- *
- * This header file contains definitions and macros for interfacing with the ENC28J60 Ethernet controller.
- * It includes control register definitions, chip enable/disable macros, and configurations for delays and
- * chip select (CS) handling.
+ * This source file provides the implementation of the TCP protocol for the ENC28J60 Ethernet controller.
+ * It includes functions for handling TCP connections, creating and sending TCP packets, managing TCP states,
+ * and performing TCP-related tasks such as checksum calculations and logging.
  */
+
 #include "defines.h"
 #include "tcp.h"
 #include "net.h"
